@@ -1,0 +1,23 @@
+# Example PRS Weight File - Cardiovascular Risk (Demo)
+# 
+# This is a demonstration file with a subset of SNPs from published GWAS.
+# For real analysis, use weights from PGS Catalog (https://www.pgscatalog.org/)
+#
+# Format: rsid,effect_allele,other_allele,weight
+# weight = log(odds ratio) or beta coefficient
+
+rsid,effect_allele,other_allele,weight
+rs10757278,G,A,0.29
+rs1333049,C,G,0.25
+rs6725887,C,T,0.17
+rs9818870,T,C,0.15
+rs12526453,C,G,0.12
+rs2259816,T,C,0.09
+rs1746048,C,T,0.11
+rs599839,A,G,0.13
+rs17465637,A,C,0.10
+rs501120,T,C,0.10
+rs17228212,C,T,0.08
+rs2943634,C,A,0.07
+rs9982601,T,C,0.18
+rs1122608,G,T,0.12

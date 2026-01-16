@@ -304,5 +304,133 @@ def variants():
     console.print(f"\n[dim]Total: {len(CLINICAL_VARIANTS)} variants[/]")
 
 
+@app.command()
+def prs(
+    filepath: Path = typer.Argument(
+        ...,
+        help="Path to DNA data file",
+        exists=True,
+    ),
+    weights: Path = typer.Option(
+        ...,
+        "--weights",
+        "-w",
+        help="Path to weights file (CSV or PGS Catalog format)",
+        exists=True,
+    ),
+    name: Optional[str] = typer.Option(
+        None,
+        "--name",
+        "-n",
+        help="Name for this score (defaults to filename)",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output JSON file path",
+    ),
+):
+    """
+    Calculate polygenic risk score from weights file.
+    
+    Examples:
+        genomeinsight prs my_dna.txt --weights cad_prs.csv
+        genomeinsight prs data.txt -w heart_disease.csv -n "Heart Disease Risk"
+    """
+    from genomeinsight.polygenic import PRSCalculator
+    
+    # Load DNA data
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+        transient=True,
+    ) as progress:
+        progress.add_task("Loading DNA data...", total=None)
+        try:
+            dataset = load_dna_data(filepath)
+        except Exception as e:
+            console.print(f"[red]Error loading file: {e}[/]")
+            raise typer.Exit(1)
+    
+    console.print(f"[green]✓[/] Loaded {dataset.snp_count:,} SNPs")
+    
+    # Calculate PRS
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+        transient=True,
+    ) as progress:
+        progress.add_task("Calculating polygenic risk score...", total=None)
+        try:
+            calculator = PRSCalculator()
+            result = calculator.calculate_from_file(dataset, weights, score_name=name)
+        except Exception as e:
+            console.print(f"[red]Error calculating PRS: {e}[/]")
+            raise typer.Exit(1)
+    
+    # Display results
+    console.print()
+    console.print(Panel.fit(
+        f"[bold blue]📊 Polygenic Risk Score: {result.score_name}[/]",
+        border_style="blue",
+    ))
+    console.print()
+    
+    # Results table
+    table = Table(show_header=False, box=None)
+    table.add_column("Metric", style="cyan")
+    table.add_column("Value", justify="right")
+    
+    table.add_row("Raw Score", f"{result.raw_score:.4f}")
+    if result.normalized_score is not None:
+        table.add_row("Z-Score", f"{result.normalized_score:.2f}")
+    if result.percentile is not None:
+        table.add_row("Percentile", f"{result.percentile:.1f}th")
+    table.add_row("Risk Category", f"[bold]{result.risk_category.upper()}[/]")
+    table.add_row("SNPs Used", f"{result.snps_used} / {result.snps_available}")
+    table.add_row("Coverage", result.coverage_percent)
+    
+    console.print(table)
+    console.print()
+    
+    # Interpretation
+    if result.interpretation:
+        console.print(Panel(
+            result.interpretation,
+            title="📝 Interpretation",
+            border_style="dim",
+        ))
+    
+    # Coverage warning
+    if result.coverage < 0.5:
+        console.print()
+        console.print("[yellow]⚠ Low coverage warning: Less than 50% of SNPs were found.[/]")
+        console.print("[dim]Results may be less accurate. Consider using a more comprehensive genotyping service.[/]")
+    
+    # Save to JSON if requested
+    if output:
+        import json
+        output_data = {
+            "score_name": result.score_name,
+            "raw_score": result.raw_score,
+            "normalized_score": result.normalized_score,
+            "percentile": result.percentile,
+            "risk_category": result.risk_category,
+            "snps_used": result.snps_used,
+            "snps_available": result.snps_available,
+            "coverage": result.coverage,
+            "interpretation": result.interpretation,
+        }
+        with open(output, "w") as f:
+            json.dump(output_data, f, indent=2)
+        console.print(f"\n[green]✓[/] Results saved to {output}")
+    
+    console.print()
+    console.print("[dim]Note: Polygenic scores are for research/educational purposes only.[/]")
+
+
 if __name__ == "__main__":
     app()
