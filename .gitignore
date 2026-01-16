@@ -1,0 +1,158 @@
+# ============================================
+# GenomeInsight - Git Ignore Configuration
+# ============================================
+
+# ==========================================
+# 🧬 PERSONAL GENETIC DATA - NEVER COMMIT!
+# ==========================================
+# Direct-to-consumer DNA files
+*.txt
+!requirements*.txt
+AncestryDNA*.txt
+23andMe*.txt
+MyHeritage*.txt
+FamilyTreeDNA*.txt
+LivingDNA*.txt
+Nebula*.txt
+DanteLabs*.txt
+
+# Raw genomic formats
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.bam
+*.bam.bai
+*.sam
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.fasta
+*.fa
+*.bed
+*.ped
+*.map
+*.gen
+*.bgen
+
+# Analysis outputs (may contain personal data)
+*_report.html
+*_report.json
+*_report.txt
+clinical_variants_report.*
+genomeinsight_report.*
+analysis_output/
+reports_output/
+output/
+
+# ==========================================
+# Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# uv
+.uv/
+uv.lock
+
+# pyenv
+.python-version
+
+# ==========================================
+# IDE & Editors
+# ==========================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+*.sublime-project
+.claude/
+
+# ==========================================
+# OS Files
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ==========================================
+# Testing & Coverage
+# ==========================================
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# ==========================================
+# Type Checking & Linting
+# ==========================================
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+
+# ==========================================
+# Jupyter Notebooks (may contain outputs)
+# ==========================================
+.ipynb_checkpoints/
+*.ipynb
+
+# ==========================================
+# Build & Distribution
+# ==========================================
+*.manifest
+*.spec
+
+# ==========================================
+# Misc
+# ==========================================
+*.log
+*.bak
+*.tmp
+*.temp
+.cache/
+
+# ==========================================
+# Keep these files
+# ==========================================
+!examples/*.txt
