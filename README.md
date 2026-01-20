@@ -27,7 +27,9 @@ GenomeInsight analyzes your raw DNA data from services like **AncestryDNA**, **2
 | 🧠 **APOE Genotyping** | Complete ε2/ε3/ε4 determination with risk assessment |
 | 🔗 **Gene Interactions** | Detection of compound effects (e.g., MTHFR compound heterozygosity) |
 | 💊 **Pharmacogenomics** | Drug metabolism variants (CYP2D6, CYP2C19, VKORC1, etc.) |
+| 📈 **Polygenic Risk Scores** | Calculate PRS from GWAS weights (PGS Catalog compatible) |
 | 📊 **Interactive Reports** | Beautiful HTML reports with charts and tables |
+| ✅ **Comprehensive Tests** | 39+ tests covering data loaders, clinical analysis, and PRS |
 
 ## 🚀 Quick Start
 
@@ -73,6 +75,9 @@ genomeinsight analyze your_dna_file.txt --html -o report.html
 
 # Export to JSON
 genomeinsight analyze your_dna_file.txt --json -o results.json
+
+# Calculate Polygenic Risk Scores
+genomeinsight prs your_dna_file.txt --weights cardiovascular_prs.csv
 
 # View file information
 genomeinsight info your_dna_file.txt
@@ -130,10 +135,13 @@ genomeinsight/
 ├── core/              # Data loaders and utilities
 ├── clinical/          # Clinical variant analysis
 ├── pharmacogenomics/  # Drug metabolism analysis
-├── polygenic/         # Polygenic risk scores (coming soon)
+├── polygenic/         # Polygenic risk score calculator ✅
 ├── ancestry/          # Ancestry estimation (coming soon)
 ├── reports/           # HTML and JSON report generation
 └── cli.py             # Command-line interface
+
+tests/                 # Comprehensive test suite (39+ tests) ✅
+examples/              # Sample PRS weight files
 ```
 
 ## 🛠️ Development
@@ -157,7 +165,8 @@ uv run mypy genomeinsight
 
 ## 🗺️ Roadmap
 
-- [ ] Polygenic Risk Score calculator
+- [x] Polygenic Risk Score calculator
+- [x] Comprehensive test suite (39+ tests)
 - [ ] AI-powered natural language reports
 - [ ] Ancestry composition estimation
 - [ ] REST API for integration
