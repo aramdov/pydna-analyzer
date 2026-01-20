@@ -28,8 +28,9 @@ GenomeInsight analyzes your raw DNA data from services like **AncestryDNA**, **2
 | 🔗 **Gene Interactions** | Detection of compound effects (e.g., MTHFR compound heterozygosity) |
 | 💊 **Pharmacogenomics** | Drug metabolism variants (CYP2D6, CYP2C19, VKORC1, etc.) |
 | 📈 **Polygenic Risk Scores** | Calculate PRS from GWAS weights (PGS Catalog compatible) |
+| 🤖 **AI-Powered Reports** | Natural language reports via OpenAI or Anthropic |
 | 📊 **Interactive Reports** | Beautiful HTML reports with charts and tables |
-| ✅ **Comprehensive Tests** | 39+ tests covering data loaders, clinical analysis, and PRS |
+| ✅ **Comprehensive Tests** | 61+ tests covering all modules |
 
 ## 🚀 Quick Start
 
@@ -79,6 +80,9 @@ genomeinsight analyze your_dna_file.txt --json -o results.json
 # Calculate Polygenic Risk Scores
 genomeinsight prs your_dna_file.txt --weights cardiovascular_prs.csv
 
+# Generate AI-powered report (requires API key)
+genomeinsight analyze your_dna_file.txt --ai --ai-style consumer
+
 # View file information
 genomeinsight info your_dna_file.txt
 
@@ -120,6 +124,30 @@ for variant in result.high_priority:
 | 🥗 Nutrient | Nutrient metabolism | LCT (lactose), HFE (iron), VDR (vitamin D) |
 | 🧠 Neurological | Mental health and cognition | BDNF, COMT, DRD2 |
 
+## 🤖 AI-Powered Reports
+
+Generate natural language reports using OpenAI or Anthropic:
+
+```bash
+# Set your API key
+export OPENAI_API_KEY=sk-...  # or ANTHROPIC_API_KEY
+
+# Generate consumer-friendly report
+genomeinsight analyze your_dna.txt --ai --ai-style consumer
+
+# Generate technical report for researchers
+genomeinsight analyze your_dna.txt --ai --ai-style technical
+
+# Save report to file
+genomeinsight analyze your_dna.txt --ai --ai-output report.md
+```
+
+| Style | Audience | Features |
+|-------|----------|----------|
+| `consumer` | General public | Plain language, lifestyle tips, encouraging tone |
+| `technical` | Researchers/clinicians | Detailed analysis, citations, clinical considerations |
+| `both` | All | Generates both report types |
+
 ## 🔬 Gene Interactions
 
 GenomeInsight detects known gene-gene interactions:
@@ -136,11 +164,12 @@ genomeinsight/
 ├── clinical/          # Clinical variant analysis
 ├── pharmacogenomics/  # Drug metabolism analysis
 ├── polygenic/         # Polygenic risk score calculator ✅
+├── ai/                # AI-powered report generation ✅
 ├── ancestry/          # Ancestry estimation (coming soon)
 ├── reports/           # HTML and JSON report generation
 └── cli.py             # Command-line interface
 
-tests/                 # Comprehensive test suite (39+ tests) ✅
+tests/                 # Comprehensive test suite (61+ tests) ✅
 examples/              # Sample PRS weight files
 ```
 
@@ -166,8 +195,8 @@ uv run mypy genomeinsight
 ## 🗺️ Roadmap
 
 - [x] Polygenic Risk Score calculator
-- [x] Comprehensive test suite (39+ tests)
-- [ ] AI-powered natural language reports
+- [x] Comprehensive test suite (61+ tests)
+- [x] AI-powered natural language reports (OpenAI & Anthropic)
 - [ ] Ancestry composition estimation
 - [ ] REST API for integration
 - [ ] Web dashboard interface

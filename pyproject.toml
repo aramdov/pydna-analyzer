@@ -67,8 +67,12 @@ ancestry = [
     "scikit-allel>=1.3",
     "scikit-learn>=1.3",
 ]
+ai = [
+    "openai>=1.0",
+    "anthropic>=0.20",
+]
 all = [
-    "genomeinsight[dev,prs,pgx,ancestry]",
+    "genomeinsight[dev,prs,pgx,ancestry,ai]",
 ]
 
 [project.scripts]

@@ -108,6 +108,26 @@ def analyze(
         "-q",
         help="Minimal output",
     ),
+    ai_report: bool = typer.Option(
+        False,
+        "--ai",
+        help="Generate AI-powered natural language report",
+    ),
+    ai_style: str = typer.Option(
+        "consumer",
+        "--ai-style",
+        help="AI report style: 'technical', 'consumer', or 'both'",
+    ),
+    ai_provider: Optional[str] = typer.Option(
+        None,
+        "--ai-provider",
+        help="LLM provider: 'openai' or 'anthropic' (auto-detected if not set)",
+    ),
+    ai_output: Optional[Path] = typer.Option(
+        None,
+        "--ai-output",
+        help="Output path for AI report (defaults to console)",
+    ),
 ):
     """
     Analyze DNA data for clinical variants.
@@ -116,6 +136,7 @@ def analyze(
         genomeinsight analyze AncestryDNA.txt
         genomeinsight analyze 23andme.txt --html -o report.html
         genomeinsight analyze data.vcf --json -o results.json
+        genomeinsight analyze data.txt --ai --ai-style consumer
     """
     # Determine format
     data_format = DataFormat.AUTO
@@ -168,9 +189,105 @@ def analyze(
         generate_html_report(result, output_path)
         console.print(f"[green]✓[/] HTML report saved to {output_path}")
     
+    # Generate AI report if requested
+    if ai_report:
+        _generate_ai_report(
+            result=result,
+            style=ai_style,
+            provider=ai_provider,
+            output_path=ai_output,
+            quiet=quiet,
+        )
+    
     # Print summary to console
-    if not quiet and not json_output:
+    if not quiet and not json_output and not ai_report:
         _print_summary(result)
+
+
+def _generate_ai_report(
+    result: AnalysisResult,
+    style: str,
+    provider: Optional[str],
+    output_path: Optional[Path],
+    quiet: bool,
+):
+    """Generate AI-powered natural language report."""
+    from genomeinsight.ai import AIReportGenerator, ReportStyle, LLMProvider, get_client
+    
+    # Validate style
+    valid_styles = ["technical", "consumer", "both"]
+    if style not in valid_styles:
+        console.print(f"[red]Invalid AI style: {style}. Choose from: {', '.join(valid_styles)}[/]")
+        raise typer.Exit(1)
+    
+    # Get LLM client
+    try:
+        llm_provider = None
+        if provider:
+            try:
+                llm_provider = LLMProvider(provider.lower())
+            except ValueError:
+                console.print(f"[red]Unknown provider: {provider}. Choose 'openai' or 'anthropic'[/]")
+                raise typer.Exit(1)
+        
+        client = get_client(provider=llm_provider)
+        
+        if not quiet:
+            console.print(f"[green]✓[/] Using {client.provider.value.title()} for AI report")
+    
+    except ValueError as e:
+        console.print(f"[red]AI Error: {e}[/]")
+        console.print("[dim]Set OPENAI_API_KEY or ANTHROPIC_API_KEY environment variable[/]")
+        raise typer.Exit(1)
+    except ImportError as e:
+        console.print(f"[red]Missing dependency: {e}[/]")
+        console.print("[dim]Install with: uv add openai  or  uv add anthropic[/]")
+        raise typer.Exit(1)
+    
+    generator = AIReportGenerator(client)
+    
+    # Generate report(s)
+    if style == "both":
+        styles_to_generate = [ReportStyle.TECHNICAL, ReportStyle.CONSUMER]
+    else:
+        styles_to_generate = [ReportStyle.TECHNICAL if style == "technical" else ReportStyle.CONSUMER]
+    
+    for report_style in styles_to_generate:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+            transient=True,
+        ) as progress:
+            progress.add_task(f"Generating {report_style.value} AI report...", total=None)
+            try:
+                report = generator.generate(result, style=report_style)
+            except Exception as e:
+                console.print(f"[red]Error generating AI report: {e}[/]")
+                raise typer.Exit(1)
+        
+        if output_path:
+            # Append style suffix if generating both
+            if style == "both":
+                stem = output_path.stem
+                suffix = output_path.suffix or ".md"
+                final_path = output_path.parent / f"{stem}_{report_style.value}{suffix}"
+            else:
+                final_path = output_path
+            
+            with open(final_path, "w") as f:
+                f.write(report)
+            console.print(f"[green]✓[/] {report_style.value.title()} AI report saved to {final_path}")
+        else:
+            # Print to console
+            console.print()
+            console.print(Panel.fit(
+                f"[bold blue]🤖 AI-Generated {report_style.value.title()} Report[/]",
+                border_style="blue",
+            ))
+            console.print()
+            from rich.markdown import Markdown
+            console.print(Markdown(report))
 
 
 def _print_summary(result: AnalysisResult):
