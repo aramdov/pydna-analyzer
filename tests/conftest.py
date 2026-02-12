@@ -102,3 +102,124 @@ def apoe_e2e3_content():
 rs429358	19	45411941	T	T
 rs7412	19	45412079	C	T
 """
+
+
+# ===== Pharmacogenomics fixtures =====
+# All PGx-relevant rsIDs:
+#   CYP2C9:  rs1799853 (*2, risk=T), rs1057910 (*3, risk=C)
+#   CYP2C19: rs4244285 (*2, risk=A), rs4986893 (*3, risk=A), rs12248560 (*17, risk=T)
+#   CYP2D6:  rs3892097 (*4, risk=A), rs1065852 (*10, risk=A)
+#   TPMT:    rs1800460 (*3B, risk=A), rs1142345 (*3C, risk=C)
+#   VKORC1:  rs9923231 (risk=A)
+#   COMT:    rs4680 (risk=A)
+
+PGX_HEADER = "#AncestryDNA raw data download\n#rsid\tchromosome\tposition\tallele1\tallele2\n"
+
+
+@pytest.fixture
+def pgx_all_wildtype_content():
+    """All PGx genes wild-type (*1/*1 / normal)."""
+    return PGX_HEADER + (
+        "rs1799853\t10\t96702047\tC\tC\n"   # CYP2C9 *1/*1
+        "rs1057910\t10\t96741053\tA\tA\n"   # CYP2C9 *1/*1
+        "rs4244285\t10\t96541616\tG\tG\n"   # CYP2C19 *1/*1
+        "rs4986893\t10\t96540410\tG\tG\n"   # CYP2C19 *1/*1
+        "rs12248560\t10\t96521657\tC\tC\n"  # CYP2C19 *1/*1
+        "rs3892097\t22\t42524947\tG\tG\n"   # CYP2D6 *1/*1
+        "rs1065852\t22\t42522613\tG\tG\n"   # CYP2D6 *1/*1
+        "rs1800460\t6\t18130918\tG\tG\n"    # TPMT *1/*1
+        "rs1142345\t6\t18130348\tA\tA\n"    # TPMT *1/*1
+        "rs9923231\t16\t31107689\tG\tG\n"   # VKORC1 normal sensitivity
+        "rs4680\t22\t19951271\tG\tG\n"      # COMT high activity
+    )
+
+
+@pytest.fixture
+def pgx_cyp2c19_poor_metabolizer_content():
+    """CYP2C19 *2/*2 — poor metabolizer (clopidogrel ineffective)."""
+    return PGX_HEADER + (
+        "rs4244285\t10\t96541616\tA\tA\n"   # CYP2C19 *2 homozygous
+        "rs4986893\t10\t96540410\tG\tG\n"   # CYP2C19 *3 absent
+        "rs12248560\t10\t96521657\tC\tC\n"  # CYP2C19 *17 absent
+    )
+
+
+@pytest.fixture
+def pgx_cyp2c19_ultrarapid_content():
+    """CYP2C19 *17/*17 — ultrarapid metabolizer."""
+    return PGX_HEADER + (
+        "rs4244285\t10\t96541616\tG\tG\n"   # CYP2C19 *2 absent
+        "rs4986893\t10\t96540410\tG\tG\n"   # CYP2C19 *3 absent
+        "rs12248560\t10\t96521657\tT\tT\n"  # CYP2C19 *17 homozygous
+    )
+
+
+@pytest.fixture
+def pgx_cyp2c9_compound_het_content():
+    """CYP2C9 *2/*3 — compound heterozygote (poor metabolizer)."""
+    return PGX_HEADER + (
+        "rs1799853\t10\t96702047\tC\tT\n"  # CYP2C9 *2 het
+        "rs1057910\t10\t96741053\tA\tC\n"  # CYP2C9 *3 het
+    )
+
+
+@pytest.fixture
+def pgx_vkorc1_high_sensitivity_content():
+    """VKORC1 AA — high warfarin sensitivity."""
+    return PGX_HEADER + "rs9923231\t16\t31107689\tA\tA\n"
+
+
+@pytest.fixture
+def pgx_comt_low_activity_content():
+    """COMT AA (Met/Met) — low activity, higher pain sensitivity."""
+    return PGX_HEADER + "rs4680\t22\t19951271\tA\tA\n"
+
+
+@pytest.fixture
+def pgx_missing_snps_content():
+    """Partial data — only CYP2C19 *2 het, everything else missing."""
+    return PGX_HEADER + "rs4244285\t10\t96541616\tG\tA\n"
+
+
+def _make_dataset(tmp_path, content):
+    """Helper to create a DNADataset from AncestryDNA-format content."""
+    from genomeinsight.core.data_loader import load_dna_data
+
+    filepath = tmp_path / "pgx_test.txt"
+    filepath.write_text(content)
+    return load_dna_data(filepath)
+
+
+@pytest.fixture
+def pgx_all_wildtype_dataset(tmp_path, pgx_all_wildtype_content):
+    return _make_dataset(tmp_path, pgx_all_wildtype_content)
+
+
+@pytest.fixture
+def pgx_cyp2c19_pm_dataset(tmp_path, pgx_cyp2c19_poor_metabolizer_content):
+    return _make_dataset(tmp_path, pgx_cyp2c19_poor_metabolizer_content)
+
+
+@pytest.fixture
+def pgx_cyp2c19_um_dataset(tmp_path, pgx_cyp2c19_ultrarapid_content):
+    return _make_dataset(tmp_path, pgx_cyp2c19_ultrarapid_content)
+
+
+@pytest.fixture
+def pgx_cyp2c9_compound_het_dataset(tmp_path, pgx_cyp2c9_compound_het_content):
+    return _make_dataset(tmp_path, pgx_cyp2c9_compound_het_content)
+
+
+@pytest.fixture
+def pgx_vkorc1_high_dataset(tmp_path, pgx_vkorc1_high_sensitivity_content):
+    return _make_dataset(tmp_path, pgx_vkorc1_high_sensitivity_content)
+
+
+@pytest.fixture
+def pgx_comt_low_dataset(tmp_path, pgx_comt_low_activity_content):
+    return _make_dataset(tmp_path, pgx_comt_low_activity_content)
+
+
+@pytest.fixture
+def pgx_missing_snps_dataset(tmp_path, pgx_missing_snps_content):
+    return _make_dataset(tmp_path, pgx_missing_snps_content)

@@ -549,5 +549,208 @@ def prs(
     console.print("[dim]Note: Polygenic scores are for research/educational purposes only.[/]")
 
 
+@app.command()
+def pgx(
+    filepath: Path = typer.Argument(
+        ...,
+        help="Path to DNA data file (AncestryDNA, 23andMe, MyHeritage, or VCF)",
+        exists=True,
+    ),
+    gene: Optional[str] = typer.Option(
+        None,
+        "--gene",
+        "-g",
+        help="Analyze a single gene (e.g. CYP2C19)",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output JSON file path",
+    ),
+):
+    """
+    Pharmacogenomics analysis: star alleles, metabolizer phenotypes, drug recommendations.
+
+    Examples:
+        genomeinsight pgx AncestryDNA.txt
+        genomeinsight pgx data.txt --gene CYP2C19
+        genomeinsight pgx data.txt -o pgx_results.json
+    """
+    from genomeinsight.pharmacogenomics import PGxAnalyzer, MetabolizerPhenotype
+
+    # Load data
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+        transient=True,
+    ) as progress:
+        progress.add_task("Loading DNA data...", total=None)
+        try:
+            dataset = load_dna_data(filepath)
+        except Exception as e:
+            console.print(f"[red]Error loading file: {e}[/]")
+            raise typer.Exit(1)
+
+    console.print(f"[green]✓[/] Loaded {dataset.snp_count:,} SNPs from {filepath.name}")
+
+    # Run PGx analysis
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+        transient=True,
+    ) as progress:
+        progress.add_task("Running pharmacogenomics analysis...", total=None)
+        analyzer = PGxAnalyzer()
+        if gene:
+            single_result = analyzer.analyze_gene(dataset, gene.upper())
+            if single_result is None:
+                console.print(f"[red]Unknown gene: {gene}[/]")
+                console.print(
+                    f"[dim]Available genes: {', '.join(sorted(analyzer.gene_definitions))}[/]"
+                )
+                raise typer.Exit(1)
+            # Wrap in PGxResult for consistent display
+            from genomeinsight.pharmacogenomics import PGxResult
+
+            result = PGxResult(
+                gene_results=[single_result],
+                total_genes_tested=1,
+                total_snps_tested=single_result.snps_tested,
+                total_snps_missing=single_result.snps_missing,
+            )
+        else:
+            result = analyzer.analyze(dataset)
+
+    _print_pgx_results(result)
+
+    # Save JSON if requested
+    if output:
+        import json
+
+        output_data = {
+            "genes": [
+                {
+                    "gene": gr.gene,
+                    "diplotype": gr.diplotype,
+                    "phenotype": gr.phenotype.value,
+                    "activity_score": gr.activity_score,
+                    "confidence": gr.confidence,
+                    "snps_tested": gr.snps_tested,
+                    "snps_missing": gr.snps_missing,
+                    "interpretation": gr.interpretation,
+                    "drug_recommendations": [
+                        {
+                            "drug": dr.drug_name,
+                            "drug_class": dr.drug_class,
+                            "recommendation": dr.recommendation,
+                            "cpic_level": dr.cpic_level.value,
+                            "alternatives": dr.alternatives,
+                        }
+                        for dr in gr.drug_recommendations
+                    ],
+                }
+                for gr in result.gene_results
+            ],
+            "summary": result.summary,
+            "actionable_count": result.actionable_count,
+        }
+        with output.open("w") as f:
+            json.dump(output_data, f, indent=2)
+        console.print(f"\n[green]✓[/] Results saved to {output}")
+
+
+def _print_pgx_results(result):
+    """Print pharmacogenomics results with Rich tables."""
+    from genomeinsight.pharmacogenomics import MetabolizerPhenotype
+
+    console.print()
+    console.print(
+        Panel.fit(
+            "[bold blue]💊 Pharmacogenomics Report[/]",
+            border_style="blue",
+        )
+    )
+    console.print()
+
+    # Gene summary table
+    gene_table = Table(title="Gene Summary", show_lines=True)
+    gene_table.add_column("Gene", style="cyan")
+    gene_table.add_column("Diplotype", style="green")
+    gene_table.add_column("Phenotype")
+    gene_table.add_column("Activity Score", justify="right")
+    gene_table.add_column("Confidence")
+
+    PHENOTYPE_STYLES = {
+        MetabolizerPhenotype.POOR: ("🔴", "bold red"),
+        MetabolizerPhenotype.INTERMEDIATE: ("🟠", "yellow"),
+        MetabolizerPhenotype.NORMAL: ("🟢", "green"),
+        MetabolizerPhenotype.RAPID: ("🔵", "blue"),
+        MetabolizerPhenotype.ULTRARAPID: ("⚡", "bold blue"),
+        MetabolizerPhenotype.HIGH_SENSITIVITY: ("🔴", "bold red"),
+        MetabolizerPhenotype.INTERMEDIATE_SENSITIVITY: ("🟠", "yellow"),
+        MetabolizerPhenotype.NORMAL_SENSITIVITY: ("🟢", "green"),
+        MetabolizerPhenotype.HIGH_ACTIVITY: ("🟢", "green"),
+        MetabolizerPhenotype.INTERMEDIATE_ACTIVITY: ("🟠", "yellow"),
+        MetabolizerPhenotype.LOW_ACTIVITY: ("🔴", "bold red"),
+    }
+
+    for gr in result.gene_results:
+        icon, style = PHENOTYPE_STYLES.get(gr.phenotype, ("⚪", "white"))
+        score_str = f"{gr.activity_score:.1f}" if gr.activity_score is not None else "—"
+        conf_style = {"high": "green", "moderate": "yellow", "low": "red"}.get(
+            gr.confidence, "white"
+        )
+        gene_table.add_row(
+            gr.gene,
+            gr.diplotype,
+            f"{icon} [{style}]{gr.phenotype.value}[/]",
+            score_str,
+            f"[{conf_style}]{gr.confidence}[/]",
+        )
+
+    console.print(gene_table)
+    console.print()
+
+    # Drug recommendations
+    all_recs = result.all_drug_recommendations
+    if all_recs:
+        rec_table = Table(title="💊 Drug Recommendations", show_lines=True)
+        rec_table.add_column("Drug", style="bold")
+        rec_table.add_column("Gene", style="cyan")
+        rec_table.add_column("CPIC", justify="center")
+        rec_table.add_column("Recommendation")
+        rec_table.add_column("Alternatives", style="dim")
+
+        for rec in all_recs:
+            cpic_style = {
+                "strong": "bold red",
+                "moderate": "yellow",
+                "optional": "dim",
+            }.get(rec.cpic_level.value, "white")
+            rec_table.add_row(
+                rec.drug_name,
+                rec.gene,
+                f"[{cpic_style}]{rec.cpic_level.value.upper()}[/]",
+                rec.recommendation,
+                ", ".join(rec.alternatives) if rec.alternatives else "—",
+            )
+
+        console.print(rec_table)
+    else:
+        console.print("[green]No actionable drug-gene interactions detected.[/]")
+
+    console.print()
+    console.print(f"[dim]{result.summary}[/]")
+    console.print()
+    console.print(
+        "[dim]⚠ Disclaimer: This analysis is for educational purposes only. "
+        "Do not adjust medications without consulting a healthcare provider and "
+        "clinical-grade pharmacogenomic testing.[/]"
+    )
+
+
 if __name__ == "__main__":
     app()

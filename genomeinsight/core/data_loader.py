@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Optional
 
 import pandas as pd
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class DataFormat(str, Enum):
@@ -39,8 +39,7 @@ class GenotypeData(BaseModel):
     allele2: str
     genotype: str
     
-    class Config:
-        frozen = True
+    model_config = ConfigDict(frozen=True)
 
 
 class DNADataset(BaseModel):
@@ -51,8 +50,7 @@ class DNADataset(BaseModel):
     snp_count: int
     dataframe: object  # pd.DataFrame - using object for Pydantic compatibility
     
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     
     def get_genotype(self, rsid: str) -> Optional[str]:
         """Get genotype for a specific rsID."""
