@@ -1,5 +1,8 @@
 """Tests for ancestry estimation module."""
 
+import numpy as np
+
+from genomeinsight.ancestry.estimator import AncestryEstimator
 from genomeinsight.ancestry.reference_data import AIMDatabase
 
 
@@ -47,3 +50,99 @@ class TestAIMDatabase:
         names = db.get_population_names()
         assert "Northern European" in names
         assert "West African" in names
+
+
+class TestGenotypeLikelihood:
+    def setup_method(self):
+        self.estimator = AncestryEstimator()
+
+    def test_homozygous_effect_high_freq(self):
+        result = self.estimator._genotype_likelihood("AA", "A", 0.9)
+        assert abs(result - 0.81) < 0.001
+
+    def test_homozygous_effect_low_freq(self):
+        result = self.estimator._genotype_likelihood("AA", "A", 0.1)
+        assert abs(result - 0.01) < 0.001
+
+    def test_heterozygous(self):
+        result = self.estimator._genotype_likelihood("AG", "A", 0.5)
+        assert abs(result - 0.5) < 0.001
+
+    def test_homozygous_other(self):
+        result = self.estimator._genotype_likelihood("GG", "A", 0.3)
+        assert abs(result - 0.49) < 0.001
+
+    def test_freq_zero_homozygous_other(self):
+        result = self.estimator._genotype_likelihood("GG", "A", 0.0)
+        assert abs(result - 1.0) < 0.01
+
+    def test_freq_one_homozygous_effect(self):
+        result = self.estimator._genotype_likelihood("AA", "A", 1.0)
+        assert abs(result - 1.0) < 0.01
+
+    def test_minimum_floor(self):
+        result = self.estimator._genotype_likelihood("AA", "A", 0.0)
+        assert result > 0
+
+
+class TestOptimizeProportions:
+    def setup_method(self):
+        self.estimator = AncestryEstimator()
+
+    def test_single_population_dominant(self):
+        likelihood_matrix = np.array([[0.9, 0.01, 0.01]] * 10)
+        proportions = self.estimator._optimize_proportions(likelihood_matrix)
+        assert proportions[0] > 0.9
+        assert abs(sum(proportions) - 1.0) < 0.001
+
+    def test_equal_mixture(self):
+        likelihood_matrix = np.array([[0.5, 0.5, 0.5]] * 10)
+        proportions = self.estimator._optimize_proportions(likelihood_matrix)
+        for p in proportions:
+            assert 0.2 < p < 0.5
+
+    def test_two_population_mix(self):
+        rows_pop0 = [[0.9, 0.01, 0.01]] * 5
+        rows_pop1 = [[0.01, 0.9, 0.01]] * 5
+        likelihood_matrix = np.array(rows_pop0 + rows_pop1)
+        proportions = self.estimator._optimize_proportions(likelihood_matrix)
+        assert abs(proportions[0] - 0.5) < 0.15
+        assert abs(proportions[1] - 0.5) < 0.15
+
+    def test_proportions_sum_to_one(self):
+        likelihood_matrix = np.array([
+            [0.3, 0.5, 0.2],
+            [0.7, 0.1, 0.2],
+            [0.1, 0.8, 0.1],
+        ])
+        proportions = self.estimator._optimize_proportions(likelihood_matrix)
+        assert abs(sum(proportions) - 1.0) < 0.001
+
+    def test_proportions_non_negative(self):
+        likelihood_matrix = np.array([[0.9, 0.01, 0.01, 0.01]] * 20)
+        proportions = self.estimator._optimize_proportions(likelihood_matrix)
+        for p in proportions:
+            assert p >= -0.001
+
+
+class TestBootstrapConfidence:
+    def setup_method(self):
+        self.estimator = AncestryEstimator()
+
+    def test_returns_low_and_high(self):
+        likelihood_matrix = np.array([[0.9, 0.05, 0.05]] * 20)
+        low, high = self.estimator._bootstrap_confidence(likelihood_matrix, n_bootstrap=10)
+        assert len(low) == 3
+        assert len(high) == 3
+
+    def test_ci_contains_point_estimate(self):
+        likelihood_matrix = np.array([[0.9, 0.05, 0.05]] * 30)
+        point = self.estimator._optimize_proportions(likelihood_matrix)
+        low, high = self.estimator._bootstrap_confidence(likelihood_matrix, n_bootstrap=20)
+        assert low[0] <= point[0] <= high[0] + 0.05
+
+    def test_ci_width_reasonable(self):
+        likelihood_matrix = np.array([[0.8, 0.1, 0.1]] * 20)
+        low, high = self.estimator._bootstrap_confidence(likelihood_matrix, n_bootstrap=10)
+        for i in range(3):
+            assert 0.0 <= low[i] <= high[i] <= 1.0
