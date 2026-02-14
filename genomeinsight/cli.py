@@ -851,7 +851,7 @@ def ancestry(
         console.print(f"\n[green]✓[/] Results saved to {output}")
 
 
-def _print_ancestry_results(result):
+def _print_ancestry_results(result: "AncestryResult") -> None:  # noqa: F821
     """Print ancestry estimation results with Rich tables."""
     console.print()
     console.print(

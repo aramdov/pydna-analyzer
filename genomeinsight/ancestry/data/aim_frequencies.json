@@ -2,7 +2,7 @@
   "metadata": {
     "source": "1000 Genomes Phase 3 / gnomAD",
     "version": "1.0",
-    "aim_count": 123
+    "aim_count": 115
   },
   "populations": {
     "Northern European": {
@@ -869,28 +869,6 @@
         "Central Asian": 0.02
       }
     },
-    "rs17822931": {
-      "chromosome": "16",
-      "position": 48258198,
-      "gene": "ABCC11",
-      "effect_allele": "T",
-      "frequencies": {
-        "Northern European": 0.02,
-        "Southern European": 0.03,
-        "Eastern European": 0.02,
-        "West African": 0.01,
-        "East African": 0.01,
-        "North African": 0.02,
-        "Han Chinese": 0.9,
-        "Japanese": 0.87,
-        "Korean": 0.89,
-        "South Asian": 0.12,
-        "Native American": 0.6,
-        "Middle Eastern": 0.04,
-        "Oceanian": 0.4,
-        "Central Asian": 0.18
-      }
-    },
     "rs3811801": {
       "chromosome": "1",
       "position": 169519049,
@@ -1155,28 +1133,6 @@
         "Central Asian": 0.22
       }
     },
-    "rs12203592": {
-      "chromosome": "6",
-      "position": 396321,
-      "gene": "IRF4",
-      "effect_allele": "T",
-      "frequencies": {
-        "Northern European": 0.18,
-        "Southern European": 0.1,
-        "Eastern European": 0.15,
-        "West African": 0.0,
-        "East African": 0.01,
-        "North African": 0.05,
-        "Han Chinese": 0.0,
-        "Japanese": 0.0,
-        "Korean": 0.0,
-        "South Asian": 0.02,
-        "Native American": 0.01,
-        "Middle Eastern": 0.08,
-        "Oceanian": 0.0,
-        "Central Asian": 0.05
-      }
-    },
     "rs9894429": {
       "chromosome": "17",
       "position": 79608270,
@@ -1265,28 +1221,6 @@
         "Central Asian": 0.03
       }
     },
-    "rs1805009": {
-      "chromosome": "16",
-      "position": 89919746,
-      "gene": "MC1R",
-      "effect_allele": "T",
-      "frequencies": {
-        "Northern European": 0.03,
-        "Southern European": 0.01,
-        "Eastern European": 0.02,
-        "West African": 0.0,
-        "East African": 0.0,
-        "North African": 0.01,
-        "Han Chinese": 0.0,
-        "Japanese": 0.0,
-        "Korean": 0.0,
-        "South Asian": 0.0,
-        "Native American": 0.0,
-        "Middle Eastern": 0.01,
-        "Oceanian": 0.0,
-        "Central Asian": 0.01
-      }
-    },
     "rs13289810": {
       "chromosome": "9",
       "position": 16888127,
@@ -1329,28 +1263,6 @@
         "Middle Eastern": 0.55,
         "Oceanian": 0.4,
         "Central Asian": 0.5
-      }
-    },
-    "rs2402130": {
-      "chromosome": "14",
-      "position": 92801203,
-      "gene": "SLC24A4",
-      "effect_allele": "A",
-      "frequencies": {
-        "Northern European": 0.4,
-        "Southern European": 0.55,
-        "Eastern European": 0.45,
-        "West African": 0.1,
-        "East African": 0.12,
-        "North African": 0.28,
-        "Han Chinese": 0.15,
-        "Japanese": 0.14,
-        "Korean": 0.15,
-        "South Asian": 0.22,
-        "Native American": 0.18,
-        "Middle Eastern": 0.32,
-        "Oceanian": 0.12,
-        "Central Asian": 0.25
       }
     },
     "rs683": {
@@ -1417,72 +1329,6 @@
         "Middle Eastern": 0.08,
         "Oceanian": 0.12,
         "Central Asian": 0.07
-      }
-    },
-    "rs1126809": {
-      "chromosome": "11",
-      "position": 89017961,
-      "gene": "TYR",
-      "effect_allele": "A",
-      "frequencies": {
-        "Northern European": 0.28,
-        "Southern European": 0.35,
-        "Eastern European": 0.3,
-        "West African": 0.03,
-        "East African": 0.04,
-        "North African": 0.15,
-        "Han Chinese": 0.02,
-        "Japanese": 0.02,
-        "Korean": 0.02,
-        "South Asian": 0.1,
-        "Native American": 0.05,
-        "Middle Eastern": 0.2,
-        "Oceanian": 0.02,
-        "Central Asian": 0.12
-      }
-    },
-    "rs6119471": {
-      "chromosome": "14",
-      "position": 92801203,
-      "gene": "SLC24A4",
-      "effect_allele": "C",
-      "frequencies": {
-        "Northern European": 0.35,
-        "Southern European": 0.22,
-        "Eastern European": 0.3,
-        "West African": 0.03,
-        "East African": 0.04,
-        "North African": 0.12,
-        "Han Chinese": 0.05,
-        "Japanese": 0.04,
-        "Korean": 0.05,
-        "South Asian": 0.1,
-        "Native American": 0.08,
-        "Middle Eastern": 0.15,
-        "Oceanian": 0.04,
-        "Central Asian": 0.12
-      }
-    },
-    "rs35397": {
-      "chromosome": "5",
-      "position": 33958959,
-      "gene": "SLC45A2",
-      "effect_allele": "T",
-      "frequencies": {
-        "Northern European": 0.9,
-        "Southern European": 0.78,
-        "Eastern European": 0.85,
-        "West African": 0.04,
-        "East African": 0.05,
-        "North African": 0.32,
-        "Han Chinese": 0.06,
-        "Japanese": 0.05,
-        "Korean": 0.06,
-        "South Asian": 0.2,
-        "Native American": 0.12,
-        "Middle Eastern": 0.45,
-        "Oceanian": 0.05,
-        "Central Asian": 0.3
       }
     },
     "rs7170852": {
@@ -2627,28 +2473,6 @@
         "Middle Eastern": 0.25,
         "Oceanian": 0.04,
         "Central Asian": 0.18
-      }
-    },
-    "rs2240203": {
-      "chromosome": "16",
-      "position": 89920138,
-      "gene": "MC1R",
-      "effect_allele": "T",
-      "frequencies": {
-        "Northern European": 0.06,
-        "Southern European": 0.03,
-        "Eastern European": 0.05,
-        "West African": 0.0,
-        "East African": 0.0,
-        "North African": 0.02,
-        "Han Chinese": 0.0,
-        "Japanese": 0.0,
-        "Korean": 0.0,
-        "South Asian": 0.01,
-        "Native American": 0.0,
-        "Middle Eastern": 0.02,
-        "Oceanian": 0.0,
-        "Central Asian": 0.01
       }
     },
     "rs10756819": {

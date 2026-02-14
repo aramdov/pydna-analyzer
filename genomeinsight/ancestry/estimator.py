@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
-from scipy.optimize import minimize
 
 from genomeinsight.ancestry.reference_data import AIMDatabase
 
@@ -40,6 +39,7 @@ class AncestryEstimator:
     """Estimates ancestry proportions via maximum likelihood on AIM genotypes."""
 
     EPSILON: float = 1e-10
+    _last_converged: bool = True
 
     def _count_effect_alleles(self, genotype: str, effect_allele: str) -> int:
         """Count 0, 1, or 2 copies of the effect allele in a genotype."""
@@ -116,7 +116,9 @@ class AncestryEstimator:
         constraints = {"type": "eq", "fun": lambda q: np.sum(q) - 1.0}
         bounds = [(0.0, 1.0)] * n_pops
 
-        result = minimize(
+        from scipy.optimize import minimize
+
+        opt_result = minimize(
             neg_log_likelihood,
             q0,
             method="SLSQP",
@@ -125,8 +127,9 @@ class AncestryEstimator:
             options={"maxiter": 1000, "ftol": 1e-12},
         )
 
-        proportions = np.maximum(result.x, 0.0)
+        proportions = np.maximum(opt_result.x, 0.0)
         proportions /= proportions.sum()
+        self._last_converged = bool(opt_result.success)
         return proportions
 
     def _bootstrap_confidence(
@@ -213,7 +216,7 @@ class AncestryEstimator:
             snps_available=len(aim_database.aims),
             coverage=len(genotypes) / len(aim_database.aims),
             log_likelihood=log_likelihood,
-            convergence=True,
+            convergence=self._last_converged,
             top_regions=top_regions,
             interpretation=interpretation,
         )
