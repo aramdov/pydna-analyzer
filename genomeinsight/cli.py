@@ -752,5 +752,160 @@ def _print_pgx_results(result):
     )
 
 
+@app.command()
+def ancestry(
+    filepath: Path = typer.Argument(
+        ...,
+        help="Path to DNA data file (AncestryDNA, 23andMe, MyHeritage, or VCF)",
+        exists=True,
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output JSON file path",
+    ),
+    bootstrap: int = typer.Option(
+        100,
+        "--bootstrap",
+        "-b",
+        help="Number of bootstrap iterations for confidence intervals",
+    ),
+):
+    """
+    Estimate ancestry composition from DNA data.
+
+    Uses maximum likelihood estimation with ancestry-informative markers
+    to estimate population proportions with confidence intervals.
+
+    Examples:
+        genomeinsight ancestry AncestryDNA.txt
+        genomeinsight ancestry data.txt -o ancestry.json
+        genomeinsight ancestry data.txt --bootstrap 200
+    """
+    from genomeinsight.ancestry import AncestryAnalyzer
+
+    # Load data
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+        transient=True,
+    ) as progress:
+        progress.add_task("Loading DNA data...", total=None)
+        try:
+            dataset = load_dna_data(filepath)
+        except Exception as e:
+            console.print(f"[red]Error loading file: {e}[/]")
+            raise typer.Exit(1)
+
+    console.print(f"[green]✓[/] Loaded {dataset.snp_count:,} SNPs from {filepath.name}")
+
+    # Run ancestry estimation
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+        transient=True,
+    ) as progress:
+        progress.add_task("Estimating ancestry composition...", total=None)
+        analyzer = AncestryAnalyzer(n_bootstrap=bootstrap)
+        result = analyzer.analyze(dataset)
+
+    coverage_pct = f"{result.coverage * 100:.1f}%"
+    console.print(
+        f"[green]✓[/] Matched {result.snps_used} / {result.snps_available} "
+        f"ancestry markers ({coverage_pct})"
+    )
+
+    if result.snps_used == 0:
+        console.print(f"\n[yellow]{result.interpretation}[/]")
+        raise typer.Exit(0)
+
+    _print_ancestry_results(result)
+
+    # Save JSON if requested
+    if output:
+        import json
+
+        output_data = {
+            "populations": [
+                {
+                    "population": p.population,
+                    "region": p.region,
+                    "proportion": round(p.proportion, 4),
+                    "confidence_low": round(p.confidence_low, 4),
+                    "confidence_high": round(p.confidence_high, 4),
+                }
+                for p in result.populations
+                if p.proportion >= 0.01
+            ],
+            "regions": {k: round(v, 4) for k, v in result.top_regions.items()},
+            "snps_used": result.snps_used,
+            "snps_available": result.snps_available,
+            "coverage": round(result.coverage, 4),
+            "interpretation": result.interpretation,
+        }
+        with output.open("w") as f:
+            json.dump(output_data, f, indent=2)
+        console.print(f"\n[green]✓[/] Results saved to {output}")
+
+
+def _print_ancestry_results(result):
+    """Print ancestry estimation results with Rich tables."""
+    console.print()
+    console.print(
+        Panel.fit(
+            "[bold blue]🌍 Ancestry Composition[/]",
+            border_style="blue",
+        )
+    )
+    console.print()
+
+    # Population table with visual bars
+    table = Table(show_lines=True)
+    table.add_column("Population", style="bold")
+    table.add_column("%", justify="right", style="cyan")
+    table.add_column("", min_width=25)
+    table.add_column("95% CI", style="dim")
+
+    for pop in result.populations:
+        if pop.proportion < 0.02:
+            continue
+        pct = f"{pop.proportion * 100:.1f}%"
+        bar_len = int(pop.proportion * 30)
+        bar = "█" * bar_len
+        ci = f"{pop.confidence_low * 100:.1f} - {pop.confidence_high * 100:.1f}%"
+        table.add_row(pop.population, pct, f"[blue]{bar}[/]", ci)
+
+    console.print(table)
+    console.print()
+
+    # Regional summary
+    console.print("[bold]📊 Regional Summary[/]")
+    for region, proportion in sorted(
+        result.top_regions.items(), key=lambda x: x[1], reverse=True
+    ):
+        if proportion >= 0.02:
+            console.print(f"  {region}: {proportion * 100:.1f}%")
+
+    # Interpretation
+    console.print()
+    console.print(
+        Panel(
+            result.interpretation,
+            title="📝 Interpretation",
+            border_style="dim",
+        )
+    )
+
+    console.print()
+    console.print(
+        "[dim]⚠ Note: Ancestry estimates are based on a curated set of "
+        "ancestry-informative markers. Commercial services use significantly "
+        "more data for higher resolution. Results are for educational purposes only.[/]"
+    )
+
+
 if __name__ == "__main__":
     app()

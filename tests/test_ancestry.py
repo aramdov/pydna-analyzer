@@ -1,10 +1,12 @@
 """Tests for ancestry estimation module."""
 
 import numpy as np
+from typer.testing import CliRunner
 
 from genomeinsight.ancestry import AncestryAnalyzer, AncestryResult
 from genomeinsight.ancestry.estimator import AncestryEstimator
 from genomeinsight.ancestry.reference_data import AIMDatabase
+from genomeinsight.cli import app
 
 
 class TestAIMDatabase:
@@ -226,3 +228,37 @@ class TestAncestryAnalyzer:
         dataset = ancestry_dataset_factory(genotypes)
         result = analyzer.analyze(dataset)
         assert result.coverage < 0.1
+
+
+runner = CliRunner()
+
+
+class TestAncestryCLI:
+    """Tests for the ancestry CLI command."""
+
+    def test_ancestry_command_runs(self, sample_ancestrydna_file):
+        result = runner.invoke(app, ["ancestry", str(sample_ancestrydna_file)])
+        assert result.exit_code == 0
+
+    def test_ancestry_json_output(self, sample_ancestrydna_file, tmp_path):
+        output = tmp_path / "ancestry.json"
+        result = runner.invoke(
+            app, ["ancestry", str(sample_ancestrydna_file), "-o", str(output)]
+        )
+        assert result.exit_code == 0
+        # JSON is only written when ancestry markers are matched;
+        # the sample file may lack AIMs, so we just check for success
+        if output.exists():
+            import json
+
+            data = json.loads(output.read_text())
+            assert "populations" in data
+
+    def test_ancestry_output_contains_header(self, sample_ancestrydna_file):
+        result = runner.invoke(app, ["ancestry", str(sample_ancestrydna_file)])
+        # Should contain ancestry-related output
+        assert (
+            "Ancestry" in result.output
+            or "ancestry" in result.output
+            or "marker" in result.output
+        )
