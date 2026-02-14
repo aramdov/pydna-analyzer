@@ -2,6 +2,7 @@
 
 import numpy as np
 
+from genomeinsight.ancestry import AncestryAnalyzer, AncestryResult
 from genomeinsight.ancestry.estimator import AncestryEstimator
 from genomeinsight.ancestry.reference_data import AIMDatabase
 
@@ -146,3 +147,82 @@ class TestBootstrapConfidence:
         low, high = self.estimator._bootstrap_confidence(likelihood_matrix, n_bootstrap=10)
         for i in range(3):
             assert 0.0 <= low[i] <= high[i] <= 1.0
+
+
+class TestAncestryAnalyzer:
+    """Integration tests for full ancestry estimation."""
+
+    def test_analyze_returns_result(self, ancestry_dataset_factory):
+        analyzer = AncestryAnalyzer(n_bootstrap=10)
+        db = AIMDatabase.load()
+        rsids = list(db.aims.keys())[:20]
+        genotypes = {rsid: db.get_effect_allele(rsid) * 2 for rsid in rsids}
+        dataset = ancestry_dataset_factory(genotypes)
+        result = analyzer.analyze(dataset)
+        assert isinstance(result, AncestryResult)
+
+    def test_proportions_sum_to_one(self, ancestry_dataset_factory):
+        analyzer = AncestryAnalyzer(n_bootstrap=10)
+        db = AIMDatabase.load()
+        rsids = list(db.aims.keys())[:20]
+        genotypes = {rsid: db.get_effect_allele(rsid) * 2 for rsid in rsids}
+        dataset = ancestry_dataset_factory(genotypes)
+        result = analyzer.analyze(dataset)
+        total = sum(p.proportion for p in result.populations)
+        assert abs(total - 1.0) < 0.01
+
+    def test_result_has_coverage(self, ancestry_dataset_factory):
+        analyzer = AncestryAnalyzer(n_bootstrap=10)
+        db = AIMDatabase.load()
+        rsids = list(db.aims.keys())[:10]
+        genotypes = {rsid: db.get_effect_allele(rsid) * 2 for rsid in rsids}
+        dataset = ancestry_dataset_factory(genotypes)
+        result = analyzer.analyze(dataset)
+        assert result.snps_used == 10
+        assert result.snps_available >= 50
+        assert 0 < result.coverage <= 1.0
+
+    def test_result_sorted_by_proportion(self, ancestry_dataset_factory):
+        analyzer = AncestryAnalyzer(n_bootstrap=10)
+        db = AIMDatabase.load()
+        rsids = list(db.aims.keys())[:20]
+        genotypes = {rsid: db.get_effect_allele(rsid) * 2 for rsid in rsids}
+        dataset = ancestry_dataset_factory(genotypes)
+        result = analyzer.analyze(dataset)
+        proportions = [p.proportion for p in result.populations]
+        assert proportions == sorted(proportions, reverse=True)
+
+    def test_top_regions_aggregated(self, ancestry_dataset_factory):
+        analyzer = AncestryAnalyzer(n_bootstrap=10)
+        db = AIMDatabase.load()
+        rsids = list(db.aims.keys())[:20]
+        genotypes = {rsid: db.get_effect_allele(rsid) * 2 for rsid in rsids}
+        dataset = ancestry_dataset_factory(genotypes)
+        result = analyzer.analyze(dataset)
+        assert isinstance(result.top_regions, dict)
+        assert abs(sum(result.top_regions.values()) - 1.0) < 0.01
+
+    def test_has_interpretation(self, ancestry_dataset_factory):
+        analyzer = AncestryAnalyzer(n_bootstrap=10)
+        db = AIMDatabase.load()
+        rsids = list(db.aims.keys())[:20]
+        genotypes = {rsid: db.get_effect_allele(rsid) * 2 for rsid in rsids}
+        dataset = ancestry_dataset_factory(genotypes)
+        result = analyzer.analyze(dataset)
+        assert len(result.interpretation) > 0
+
+    def test_no_matching_aims(self, ancestry_dataset_factory):
+        dataset = ancestry_dataset_factory({"rs99999999": "AA"})
+        analyzer = AncestryAnalyzer(n_bootstrap=10)
+        result = analyzer.analyze(dataset)
+        assert result.snps_used == 0
+        assert "insufficient" in result.interpretation.lower()
+
+    def test_low_coverage_noted(self, ancestry_dataset_factory):
+        analyzer = AncestryAnalyzer(n_bootstrap=10)
+        db = AIMDatabase.load()
+        rsids = list(db.aims.keys())[:3]
+        genotypes = {rsid: db.get_effect_allele(rsid) * 2 for rsid in rsids}
+        dataset = ancestry_dataset_factory(genotypes)
+        result = analyzer.analyze(dataset)
+        assert result.coverage < 0.1

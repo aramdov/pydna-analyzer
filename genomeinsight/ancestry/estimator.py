@@ -153,3 +153,118 @@ class AncestryEstimator:
         lower = np.percentile(samples, 100.0 * alpha, axis=0)
         upper = np.percentile(samples, 100.0 * (1.0 - alpha), axis=0)
         return lower, upper
+
+    def estimate(
+        self,
+        genotypes: dict[str, str],
+        aim_database: AIMDatabase,
+        n_bootstrap: int = 100,
+    ) -> AncestryResult:
+        """Run full ancestry estimation pipeline."""
+        if len(genotypes) == 0:
+            return self._empty_result(aim_database)
+
+        # Build likelihood matrix
+        likelihood_matrix, pop_names = self._build_likelihood_matrix(genotypes, aim_database)
+
+        # Optimize proportions
+        proportions = self._optimize_proportions(likelihood_matrix)
+
+        # Bootstrap CI (skip if too few SNPs)
+        if len(genotypes) >= 5:
+            ci_low, ci_high = self._bootstrap_confidence(
+                likelihood_matrix, n_bootstrap=n_bootstrap
+            )
+        else:
+            ci_low = np.zeros(len(pop_names))
+            ci_high = np.ones(len(pop_names))
+
+        # Log-likelihood at solution
+        mixed = likelihood_matrix @ proportions
+        log_likelihood = float(np.sum(np.log(np.maximum(mixed, self.EPSILON))))
+
+        # Build results sorted by proportion
+        pop_results = []
+        for i, pop_name in enumerate(pop_names):
+            region = aim_database.populations[pop_name].get("region", "Unknown")
+            pop_results.append(
+                PopulationResult(
+                    population=pop_name,
+                    region=region,
+                    proportion=float(proportions[i]),
+                    confidence_low=float(ci_low[i]),
+                    confidence_high=float(ci_high[i]),
+                )
+            )
+        pop_results.sort(key=lambda x: x.proportion, reverse=True)
+
+        # Aggregate by region
+        top_regions: dict[str, float] = {}
+        for pr in pop_results:
+            top_regions[pr.region] = top_regions.get(pr.region, 0.0) + pr.proportion
+
+        interpretation = self._generate_interpretation(
+            pop_results, top_regions, len(genotypes), len(aim_database.aims)
+        )
+
+        return AncestryResult(
+            populations=pop_results,
+            snps_used=len(genotypes),
+            snps_available=len(aim_database.aims),
+            coverage=len(genotypes) / len(aim_database.aims),
+            log_likelihood=log_likelihood,
+            convergence=True,
+            top_regions=top_regions,
+            interpretation=interpretation,
+        )
+
+    def _empty_result(self, aim_database: AIMDatabase) -> AncestryResult:
+        return AncestryResult(
+            populations=[],
+            snps_used=0,
+            snps_available=len(aim_database.aims),
+            coverage=0.0,
+            log_likelihood=0.0,
+            convergence=False,
+            top_regions={},
+            interpretation=(
+                "Insufficient data: no ancestry-informative markers found in your "
+                "dataset. Ancestry estimation requires overlap with the reference panel."
+            ),
+        )
+
+    def _generate_interpretation(
+        self,
+        populations: list[PopulationResult],
+        regions: dict[str, float],
+        snps_used: int,
+        snps_available: int,
+    ) -> str:
+        coverage = snps_used / snps_available if snps_available > 0 else 0
+        significant = [p for p in populations if p.proportion >= 0.05]
+        if not significant:
+            return "No population reached 5% proportion threshold."
+
+        parts = []
+        primary = significant[0]
+        parts.append(
+            f"Your ancestry is predominantly {primary.population} "
+            f"({primary.proportion:.0%})."
+        )
+        if len(significant) > 1:
+            others = ", ".join(
+                f"{p.population} ({p.proportion:.0%})" for p in significant[1:3]
+            )
+            parts.append(f"Additional components include {others}.")
+
+        top_region = max(regions, key=regions.get)  # type: ignore[arg-type]
+        parts.append(
+            f"By region, your strongest affinity is to {top_region} "
+            f"({regions[top_region]:.0%})."
+        )
+        if coverage < 0.5:
+            parts.append(
+                f"Note: Only {coverage:.0%} of ancestry markers were found. "
+                "Results may be less precise."
+            )
+        return " ".join(parts)

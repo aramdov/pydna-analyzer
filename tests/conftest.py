@@ -1,7 +1,8 @@
 """Pytest fixtures for GenomeInsight tests."""
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 @pytest.fixture
@@ -223,3 +224,28 @@ def pgx_comt_low_dataset(tmp_path, pgx_comt_low_activity_content):
 @pytest.fixture
 def pgx_missing_snps_dataset(tmp_path, pgx_missing_snps_content):
     return _make_dataset(tmp_path, pgx_missing_snps_content)
+
+
+# ===== Ancestry estimation fixtures =====
+
+ANCESTRY_HEADER = (
+    "#AncestryDNA raw data download\n#rsid\tchromosome\tposition\tallele1\tallele2\n"
+)
+
+
+@pytest.fixture
+def ancestry_dataset_factory(tmp_path):
+    """Factory fixture: creates a DNADataset from a dict of rsid -> genotype."""
+    from genomeinsight.core.data_loader import load_dna_data
+
+    def _make(genotypes: dict):
+        lines = [ANCESTRY_HEADER]
+        for rsid, gt in genotypes.items():
+            a1 = gt[0] if len(gt) >= 1 else "A"
+            a2 = gt[1] if len(gt) >= 2 else a1
+            lines.append(f"{rsid}\t1\t100\t{a1}\t{a2}\n")
+        filepath = tmp_path / "ancestry_test.txt"
+        filepath.write_text("".join(lines))
+        return load_dna_data(filepath)
+
+    return _make
