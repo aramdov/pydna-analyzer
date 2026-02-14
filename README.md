@@ -30,7 +30,8 @@ GenomeInsight analyzes your raw DNA data from services like **AncestryDNA**, **2
 | 📈 **Polygenic Risk Scores** | Calculate PRS from GWAS weights (PGS Catalog compatible) |
 | 🤖 **AI-Powered Reports** | Natural language reports via OpenAI or Anthropic |
 | 📊 **Interactive Reports** | Beautiful HTML reports with charts and tables |
-| ✅ **Comprehensive Tests** | 61+ tests covering all modules |
+| 🌍 **Ancestry Estimation** | Sub-continental ancestry composition with confidence intervals |
+| ✅ **Comprehensive Tests** | 163 tests covering all modules |
 
 ## 🚀 Quick Start
 
@@ -76,6 +77,9 @@ genomeinsight analyze your_dna_file.txt --html -o report.html
 
 # Export to JSON
 genomeinsight analyze your_dna_file.txt --json -o results.json
+
+# Estimate ancestry composition
+genomeinsight ancestry your_dna_file.txt
 
 # Calculate Polygenic Risk Scores
 genomeinsight prs your_dna_file.txt --weights cardiovascular_prs.csv
@@ -165,11 +169,11 @@ genomeinsight/
 ├── pharmacogenomics/  # Drug metabolism analysis
 ├── polygenic/         # Polygenic risk score calculator ✅
 ├── ai/                # AI-powered report generation ✅
-├── ancestry/          # Ancestry estimation (coming soon)
+├── ancestry/          # Ancestry composition estimation ✅
 ├── reports/           # HTML and JSON report generation
 └── cli.py             # Command-line interface
 
-tests/                 # Comprehensive test suite (61+ tests) ✅
+tests/                 # Comprehensive test suite (163 tests) ✅
 examples/              # Sample PRS weight files
 ```
 
@@ -197,7 +201,7 @@ uv run mypy genomeinsight
 - [x] Polygenic Risk Score calculator
 - [x] Comprehensive test suite (61+ tests)
 - [x] AI-powered natural language reports (OpenAI & Anthropic)
-- [ ] Ancestry composition estimation
+- [x] Ancestry composition estimation
 - [ ] REST API for integration
 - [ ] Web dashboard interface
 - [ ] VCF file support improvements

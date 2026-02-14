@@ -11,6 +11,7 @@ __author__ = "Aram Dovlatyan"
 from genomeinsight.clinical.analyzer import ClinicalAnalyzer
 from genomeinsight.clinical.apoe import determine_apoe_status
 from genomeinsight.core.data_loader import load_dna_data
+from genomeinsight.ancestry import AncestryAnalyzer, AncestryResult
 from genomeinsight.pharmacogenomics import MetabolizerPhenotype, PGxAnalyzer, PGxResult
 
 __all__ = [
@@ -20,5 +21,7 @@ __all__ = [
     "PGxAnalyzer",
     "PGxResult",
     "MetabolizerPhenotype",
+    "AncestryAnalyzer",
+    "AncestryResult",
     "__version__",
 ]

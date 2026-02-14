@@ -19,6 +19,9 @@ uv run genomeinsight prs <file> --weights <weights.csv>
 uv run genomeinsight pgx <file>                          # All 6 genes
 uv run genomeinsight pgx <file> --gene CYP2C19            # Single gene
 uv run genomeinsight pgx <file> -o results.json           # JSON export
+uv run genomeinsight ancestry <file>                     # Ancestry estimation
+uv run genomeinsight ancestry <file> -o ancestry.json    # JSON export
+uv run genomeinsight ancestry <file> --bootstrap 200     # More CI iterations
 uv run genomeinsight info <file>
 uv run genomeinsight variants
 
@@ -43,7 +46,8 @@ uv run mypy genomeinsight    # Type check
 DNA File → DataLoader (auto-detect format) → DNADataset (pydantic) → Analyzer → Results → Reports
                                                   ├─→ ClinicalAnalyzer → AnalysisResult
                                                   ├─→ PGxAnalyzer      → PGxResult (diplotypes, phenotypes, drug recs)
-                                                  └─→ PRSCalculator    → PRSResult
+                                                  ├─→ PRSCalculator    → PRSResult
+                                                  └─→ AncestryAnalyzer → AncestryResult (population proportions, CI)
 ```
 
 ### Module Map
@@ -63,6 +67,11 @@ DNA File → DataLoader (auto-detect format) → DNADataset (pydantic) → Analy
 - **`ai/`** — LLM report generation:
   - `client.py` — Abstract LLM client with OpenAI and Anthropic implementations
   - `report_generator.py` — Generates natural language reports from analysis results
+- **`ancestry/`** — Ancestry composition estimation:
+  - `reference_data.py` — AIMDatabase: loads bundled AIM allele frequencies (123 markers, 14 populations)
+  - `estimator.py` — AncestryEstimator: MLE admixture via scipy SLSQP, bootstrap CI, HWE likelihood
+  - `data/aim_frequencies.json` — Curated allele frequencies from 1000 Genomes Phase 3
+  - Pipeline: match AIMs → build likelihood matrix → optimize proportions → bootstrap CI → interpret
 - **`reports/`** — HTML (Jinja2 + Plotly) and JSON export
 
 ### Key Patterns
@@ -75,7 +84,7 @@ DNA File → DataLoader (auto-detect format) → DNADataset (pydantic) → Analy
 
 ### Test Structure
 
-Tests use class-based organization with pytest fixtures in `conftest.py` for sample DNA data. The `tmp_path` fixture handles temporary file creation. Markers: `slow`, `integration`. Current count: 129 tests (33 PGx, 22 AI, 8 APOE, 13 CLI, 7 clinical analyzer, 13 data loader, 9 PRS, 21 reports, 3 PGx database integrity).
+Tests use class-based organization with pytest fixtures in `conftest.py` for sample DNA data. The `tmp_path` fixture handles temporary file creation. Markers: `slow`, `integration`. Current count: 163 tests (34 ancestry, 33 PGx, 22 AI, 8 APOE, 13 CLI, 7 clinical analyzer, 13 data loader, 9 PRS, 21 reports, 3 PGx database integrity).
 
 ## Code Style
 
