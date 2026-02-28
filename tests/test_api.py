@@ -106,3 +106,33 @@ class TestAnalyzeEndpoint:
         response = client.post("/analyze", data={"file_path": str(sample_ancestrydna_file)})
         data = response.json()
         assert "apoe_status" in data
+
+
+class TestPgxEndpoint:
+    def test_pgx_returns_results(self, client, tmp_path, pgx_all_wildtype_content):
+        filepath = tmp_path / "pgx.txt"
+        filepath.write_text(pgx_all_wildtype_content)
+        response = client.post("/pgx", data={"file_path": str(filepath)})
+        assert response.status_code == 200
+        data = response.json()
+        assert "gene_results" in data
+        assert len(data["gene_results"]) > 0
+
+    def test_pgx_single_gene(self, client, tmp_path, pgx_all_wildtype_content):
+        filepath = tmp_path / "pgx.txt"
+        filepath.write_text(pgx_all_wildtype_content)
+        response = client.post(
+            "/pgx", data={"file_path": str(filepath)}, params={"gene": "CYP2C19"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["gene_results"]) == 1
+        assert data["gene_results"][0]["gene"] == "CYP2C19"
+
+    def test_pgx_unknown_gene(self, client, tmp_path, pgx_all_wildtype_content):
+        filepath = tmp_path / "pgx.txt"
+        filepath.write_text(pgx_all_wildtype_content)
+        response = client.post(
+            "/pgx", data={"file_path": str(filepath)}, params={"gene": "FAKEGENE"}
+        )
+        assert response.status_code == 422

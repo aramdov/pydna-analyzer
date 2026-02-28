@@ -133,3 +133,73 @@ async def analyze(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     finally:
         cleanup_temp(resolved)
+
+
+def _serialize_pgx_result(result) -> dict:
+    """Serialize a PGxResult dataclass to a JSON-safe dict."""
+    return {
+        "gene_results": [
+            {
+                "gene": gr.gene,
+                "diplotype": gr.diplotype,
+                "phenotype": gr.phenotype.value,
+                "activity_score": gr.activity_score,
+                "confidence": gr.confidence,
+                "snps_tested": gr.snps_tested,
+                "snps_missing": gr.snps_missing,
+                "interpretation": gr.interpretation,
+                "drug_recommendations": [
+                    {
+                        "drug": dr.drug_name,
+                        "drug_class": dr.drug_class,
+                        "recommendation": dr.recommendation,
+                        "cpic_level": dr.cpic_level.value,
+                        "alternatives": dr.alternatives,
+                    }
+                    for dr in gr.drug_recommendations
+                ],
+            }
+            for gr in result.gene_results
+        ],
+        "summary": result.summary,
+        "actionable_count": result.actionable_count,
+    }
+
+
+@router.post("/pgx")
+async def pgx(
+    resolved: ResolvedFile = Depends(resolve_file_input),  # noqa: B008
+    gene: str | None = Query(None),
+):
+    """Run pharmacogenomics analysis on a DNA file."""
+    from genomeinsight.core.data_loader import load_dna_data
+    from genomeinsight.pharmacogenomics import PGxAnalyzer, PGxResult
+
+    try:
+        dataset = load_dna_data(resolved.path)
+        analyzer = PGxAnalyzer()
+
+        if gene is not None:
+            single_result = analyzer.analyze_gene(dataset, gene.upper())
+            if single_result is None:
+                available = ", ".join(sorted(analyzer.gene_definitions))
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Unknown gene: {gene}. Available: {available}",
+                )
+            result = PGxResult(
+                gene_results=[single_result],
+                total_genes_tested=1,
+                total_snps_tested=single_result.snps_tested,
+                total_snps_missing=single_result.snps_missing,
+            )
+        else:
+            result = analyzer.analyze(dataset)
+
+        return _serialize_pgx_result(result)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    finally:
+        cleanup_temp(resolved)
