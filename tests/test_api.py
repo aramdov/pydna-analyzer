@@ -74,3 +74,35 @@ class TestVariantsEndpoint:
         assert "name" in variant
         assert "category" in variant
         assert "evidence" in variant
+
+
+class TestAnalyzeEndpoint:
+    def test_analyze_returns_results(self, client, sample_ancestrydna_file):
+        response = client.post("/analyze", data={"file_path": str(sample_ancestrydna_file)})
+        assert response.status_code == 200
+        data = response.json()
+        assert "snp_count" in data
+        assert "variants_found" in data
+        assert "variant_results" in data
+
+    def test_analyze_with_upload(self, client, sample_ancestrydna_content):
+        response = client.post(
+            "/analyze",
+            files={"file": ("test.txt", sample_ancestrydna_content, "text/plain")},
+        )
+        assert response.status_code == 200
+        assert response.json()["snp_count"] > 0
+
+    def test_analyze_html_format(self, client, sample_ancestrydna_file):
+        response = client.post(
+            "/analyze",
+            data={"file_path": str(sample_ancestrydna_file)},
+            params={"format": "html"},
+        )
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
+
+    def test_analyze_includes_apoe(self, client, sample_ancestrydna_file):
+        response = client.post("/analyze", data={"file_path": str(sample_ancestrydna_file)})
+        data = response.json()
+        assert "apoe_status" in data
