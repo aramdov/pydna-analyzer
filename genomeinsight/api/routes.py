@@ -32,3 +32,24 @@ async def info(resolved: ResolvedFile = Depends(resolve_file_input)):  # noqa: B
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     finally:
         cleanup_temp(resolved)
+
+
+@router.get("/variants")
+def variants():
+    """Return all clinical variants from the database."""
+    from genomeinsight.clinical.variants import CLINICAL_VARIANTS
+
+    return {
+        "variants": [
+            {
+                "rsid": rsid,
+                "gene": v.gene,
+                "name": v.name,
+                "category": v.category.value,
+                "evidence": v.evidence.value,
+                "risk_allele": v.risk_allele,
+            }
+            for rsid, v in CLINICAL_VARIANTS.items()
+        ],
+        "total": len(CLINICAL_VARIANTS),
+    }

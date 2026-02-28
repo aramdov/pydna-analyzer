@@ -56,3 +56,21 @@ class TestFileInput:
         """Nonexistent path -> 404."""
         response = client.post("/info", data={"file_path": "/nonexistent/file.txt"})
         assert response.status_code == 404
+
+
+class TestVariantsEndpoint:
+    def test_variants_returns_list(self, client):
+        response = client.get("/variants")
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data["variants"], list)
+        assert len(data["variants"]) > 30
+
+    def test_variant_has_required_fields(self, client):
+        response = client.get("/variants")
+        variant = response.json()["variants"][0]
+        assert "rsid" in variant
+        assert "gene" in variant
+        assert "name" in variant
+        assert "category" in variant
+        assert "evidence" in variant
