@@ -136,3 +136,30 @@ class TestPgxEndpoint:
             "/pgx", data={"file_path": str(filepath)}, params={"gene": "FAKEGENE"}
         )
         assert response.status_code == 422
+
+
+class TestAncestryEndpoint:
+    def test_ancestry_returns_results(self, client, tmp_path, sample_ancestrydna_content):
+        filepath = tmp_path / "ancestry.txt"
+        filepath.write_text(sample_ancestrydna_content)
+        response = client.post("/ancestry", data={"file_path": str(filepath)})
+        assert response.status_code == 200
+        data = response.json()
+        assert "populations" in data
+        assert "snps_used" in data
+        assert "interpretation" in data
+
+    def test_ancestry_bootstrap_param(self, client, tmp_path, sample_ancestrydna_content):
+        filepath = tmp_path / "ancestry.txt"
+        filepath.write_text(sample_ancestrydna_content)
+        response = client.post(
+            "/ancestry", data={"file_path": str(filepath)}, params={"bootstrap": 50}
+        )
+        assert response.status_code == 200
+
+    def test_ancestry_with_upload(self, client, sample_ancestrydna_content):
+        response = client.post(
+            "/ancestry",
+            files={"file": ("test.txt", sample_ancestrydna_content, "text/plain")},
+        )
+        assert response.status_code == 200

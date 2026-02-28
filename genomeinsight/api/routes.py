@@ -203,3 +203,42 @@ async def pgx(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     finally:
         cleanup_temp(resolved)
+
+
+@router.post("/ancestry")
+async def ancestry(
+    resolved: ResolvedFile = Depends(resolve_file_input),  # noqa: B008
+    bootstrap: int = Query(100),
+):
+    """Estimate ancestry composition from a DNA file."""
+    from genomeinsight.ancestry import AncestryAnalyzer
+    from genomeinsight.core.data_loader import load_dna_data
+
+    try:
+        dataset = load_dna_data(resolved.path)
+        analyzer = AncestryAnalyzer(n_bootstrap=bootstrap)
+        result = analyzer.analyze(dataset)
+
+        return {
+            "populations": [
+                {
+                    "population": p.population,
+                    "region": p.region,
+                    "proportion": round(p.proportion, 4),
+                    "confidence_low": round(p.confidence_low, 4),
+                    "confidence_high": round(p.confidence_high, 4),
+                }
+                for p in result.populations
+                if p.proportion >= 0.01
+            ],
+            "regions": {k: round(v, 4) for k, v in result.top_regions.items()},
+            "snps_used": result.snps_used,
+            "snps_available": result.snps_available,
+            "coverage": round(result.coverage, 4),
+            "convergence": result.convergence,
+            "interpretation": result.interpretation,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    finally:
+        cleanup_temp(resolved)
