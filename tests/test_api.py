@@ -206,3 +206,16 @@ class TestAncestryEndpoint:
             files={"file": ("test.txt", sample_ancestrydna_content, "text/plain")},
         )
         assert response.status_code == 200
+
+
+class TestServeCLI:
+    def test_serve_command_exists(self):
+        from typer.testing import CliRunner
+
+        from genomeinsight.cli import app as cli_app
+
+        runner = CliRunner()
+        result = runner.invoke(cli_app, ["serve", "--help"])
+        assert result.exit_code == 0
+        assert "host" in result.output.lower()
+        assert "port" in result.output.lower()

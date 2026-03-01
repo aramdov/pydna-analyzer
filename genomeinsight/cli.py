@@ -907,5 +907,45 @@ def _print_ancestry_results(result: "AncestryResult") -> None:  # noqa: F821
     )
 
 
+@app.command()
+def serve(
+    host: str = typer.Option("127.0.0.1", "--host", help="Host to bind to"),
+    port: int = typer.Option(8000, "--port", "-p", help="Port to bind to"),
+    reload: bool = typer.Option(False, "--reload", help="Enable auto-reload for development"),
+):
+    """
+    Start the GenomeInsight REST API server.
+
+    Examples:
+        genomeinsight serve
+        genomeinsight serve --port 9000
+        genomeinsight serve --reload
+    """
+    try:
+        import uvicorn
+    except ImportError:
+        console.print("[red]Missing dependency: uvicorn[/]")
+        console.print("[dim]Install with: uv sync --extra api[/]")
+        raise typer.Exit(1)
+
+    try:
+        from genomeinsight.api import create_app  # noqa: F401
+    except ImportError:
+        console.print("[red]Missing dependency: fastapi[/]")
+        console.print("[dim]Install with: uv sync --extra api[/]")
+        raise typer.Exit(1)
+
+    console.print(f"[bold blue]🧬 GenomeInsight API[/] starting on http://{host}:{port}")
+    console.print("[dim]API docs: http://{}:{}/docs[/]".format(host, port))
+
+    uvicorn.run(
+        "genomeinsight.api:create_app",
+        host=host,
+        port=port,
+        reload=reload,
+        factory=True,
+    )
+
+
 if __name__ == "__main__":
     app()
