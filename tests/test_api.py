@@ -219,3 +219,25 @@ class TestServeCLI:
         assert result.exit_code == 0
         assert "host" in result.output.lower()
         assert "port" in result.output.lower()
+
+
+class TestErrorHandling:
+    def test_analyze_corrupt_file(self, client, tmp_path):
+        """Corrupt file returns 422, not 500."""
+        filepath = tmp_path / "corrupt.txt"
+        filepath.write_text("this is not a valid DNA file at all")
+        response = client.post("/analyze", data={"file_path": str(filepath)})
+        assert response.status_code == 422
+        assert "detail" in response.json()
+
+    def test_pgx_corrupt_file(self, client, tmp_path):
+        filepath = tmp_path / "corrupt.txt"
+        filepath.write_text("garbage data")
+        response = client.post("/pgx", data={"file_path": str(filepath)})
+        assert response.status_code == 422
+
+    def test_ancestry_corrupt_file(self, client, tmp_path):
+        filepath = tmp_path / "corrupt.txt"
+        filepath.write_text("not dna data")
+        response = client.post("/ancestry", data={"file_path": str(filepath)})
+        assert response.status_code == 422
