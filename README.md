@@ -22,7 +22,7 @@ PyDNA Analyzer analyzes your raw DNA data from services like **AncestryDNA**, **
 
 | Feature | Description |
 |---------|-------------|
-| 📁 **Multi-Format Support** | AncestryDNA, 23andMe, MyHeritage, and VCF files |
+| 📁 **Multi-Format Support** | AncestryDNA, 23andMe, MyHeritage, and VCF files (multi-sample, quality filtering) |
 | 🏥 **Clinical Variant Analysis** | 35+ curated SNPs with evidence-based interpretations |
 | 🧠 **APOE Genotyping** | Complete ε2/ε3/ε4 determination with risk assessment |
 | 🔗 **Gene Interactions** | Detection of compound effects (e.g., MTHFR compound heterozygosity) |
@@ -32,7 +32,7 @@ PyDNA Analyzer analyzes your raw DNA data from services like **AncestryDNA**, **
 | 📊 **Interactive Reports** | Beautiful HTML reports with charts and tables |
 | 🌍 **Ancestry Estimation** | Sub-continental ancestry composition with confidence intervals |
 | 🌐 **REST API** | Local FastAPI server for AI agents, scripts, and integrations |
-| ✅ **Comprehensive Tests** | 188 tests covering all modules |
+| ✅ **Comprehensive Tests** | 222 tests covering all modules |
 
 ## 🚀 Quick Start
 
@@ -224,7 +224,7 @@ uv run mypy pydna_analyzer
 - [x] Ancestry composition estimation
 - [x] REST API for integration
 - [ ] Web dashboard interface
-- [ ] VCF file support improvements
+- [x] VCF file support improvements
 
 ## ⚠️ Disclaimer
 

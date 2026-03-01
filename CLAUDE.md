@@ -56,7 +56,7 @@ DNA File → DataLoader (auto-detect format) → DNADataset (pydantic) → Analy
 ### Module Map
 
 - **`cli.py`** — Typer CLI. Orchestrates all modules. Entry point: `pydna_analyzer.cli:app`
-- **`core/data_loader.py`** — Multi-format parsers using strategy pattern (BaseLoader → AncestryDNALoader, TwentyThreeMeLoader, MyHeritageLoader, VCFLoader). `load_dna_data()` auto-detects format.
+- **`core/data_loader.py`** — Multi-format parsers using strategy pattern (BaseLoader → AncestryDNALoader, TwentyThreeMeLoader, MyHeritageLoader, VCFLoader). `load_dna_data()` auto-detects format. VCFLoader supports multi-sample selection, quality filtering (min_qual), and multi-allelic site handling.
 - **`clinical/`** — Variant analysis:
   - `variants.py` — Curated database of 35+ clinical SNPs as pydantic models
   - `analyzer.py` — ClinicalAnalyzer matches user genotypes against the database
@@ -91,9 +91,21 @@ DNA File → DataLoader (auto-detect format) → DNADataset (pydantic) → Analy
 
 ### Test Structure
 
-Tests use class-based organization with pytest fixtures in `conftest.py` for sample DNA data. The `tmp_path` fixture handles temporary file creation. Markers: `slow`, `integration`. Current count: 188 tests (25 API, 34 ancestry, 33 PGx, 22 AI, 8 APOE, 13 CLI, 7 clinical analyzer, 13 data loader, 9 PRS, 21 reports, 3 PGx database integrity).
+Tests use class-based organization with pytest fixtures in `conftest.py` for sample DNA data. The `tmp_path` fixture handles temporary file creation. Markers: `slow`, `integration`. Current count: 222 tests (25 API, 34 ancestry, 33 PGx, 22 AI, 8 APOE, 13 CLI, 7 clinical analyzer, 15 data loader, 34 VCF, 9 PRS, 21 reports, 3 PGx database integrity).
 
 ## Code Style
+
+### Code Intelligence
+
+Prefer LSP over Grep/Read for code navigation — it's faster, precise, and avoids reading entire files:
+- `workspaceSymbol` to find where something is defined
+- `findReferences` to see all usages across the codebase
+- `goToDefinition` / `goToImplementation` to jump to source
+- `hover` for type info without reading the file
+
+Use Grep only when LSP isn't available or for text/pattern searches (comments, strings, config).
+
+After writing or editing code, check LSP diagnostics and fix errors before proceeding.
 
 - Ruff: line-length 100, Python 3.10+ target, double quotes, space indentation
 - Ruff lint rules: E, F, W, I (isort), UP (pyupgrade), B (bugbear), SIM, C4, PTH (pathlib)
