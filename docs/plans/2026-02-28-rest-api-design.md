@@ -1,7 +1,7 @@
 # REST API Design — GenomeInsight
 
 **Date**: 2026-02-28
-**Status**: Approved
+**Status**: Complete (merged to main 2026-03-01)
 
 ## Overview
 

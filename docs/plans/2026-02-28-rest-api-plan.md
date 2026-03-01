@@ -1,6 +1,6 @@
 # REST API Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+**Status:** Complete (merged to main 2026-03-01) — 11 tasks, 25 tests, all passing.
 
 **Goal:** Add a local-first FastAPI REST API with full CLI parity (all 6 analysis commands as HTTP endpoints).
 
