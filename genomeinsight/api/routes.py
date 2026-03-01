@@ -64,9 +64,15 @@ def variants():
     }
 
 
-def _serialize_enum(value: object) -> object:
-    """Convert an Enum to its .value; pass through anything else."""
-    return value.value if isinstance(value, Enum) else value
+def _deep_serialize(obj: object) -> object:
+    """Recursively convert Enums to .value in nested dicts/lists."""
+    if isinstance(obj, Enum):
+        return obj.value
+    if isinstance(obj, dict):
+        return {_deep_serialize(k): _deep_serialize(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_deep_serialize(v) for v in obj]
+    return obj
 
 
 def _serialize_analysis_result(result) -> dict:
@@ -74,14 +80,11 @@ def _serialize_analysis_result(result) -> dict:
     from genomeinsight.clinical.apoe import APOEResult
 
     def _serialize_variant(vr) -> dict:
-        d = dataclasses.asdict(vr)
-        for key, val in d.items():
-            d[key] = _serialize_enum(val)
-        return d
+        return _deep_serialize(dataclasses.asdict(vr))
 
     variant_results = [_serialize_variant(vr) for vr in result.variant_results]
     by_category = {
-        _serialize_enum(cat): [_serialize_variant(vr) for vr in vrs]
+        (cat.value if isinstance(cat, Enum) else cat): [_serialize_variant(vr) for vr in vrs]
         for cat, vrs in result.by_category.items()
     }
 
@@ -124,14 +127,18 @@ async def analyze(
 
             from genomeinsight.reports.html_report import generate_html_report
 
-            with tempfile.NamedTemporaryFile(
-                delete=False, suffix=".html"
-            ) as tmp:
-                tmp_path = Path(tmp.name)
-            generate_html_report(result, tmp_path)
-            html_content = tmp_path.read_text()
-            tmp_path.unlink()
-            return HTMLResponse(content=html_content)
+            tmp_path = None
+            try:
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=".html"
+                ) as tmp:
+                    tmp_path = Path(tmp.name)
+                generate_html_report(result, tmp_path)
+                html_content = tmp_path.read_text()
+                return HTMLResponse(content=html_content)
+            finally:
+                if tmp_path and tmp_path.exists():
+                    tmp_path.unlink()
 
         return _serialize_analysis_result(result)
     except Exception as exc:
@@ -247,7 +254,7 @@ async def prs(
 @router.post("/ancestry")
 async def ancestry(
     resolved: ResolvedFile = Depends(resolve_file_input),  # noqa: B008
-    bootstrap: int = Query(100),
+    bootstrap: int = Query(100, ge=10, le=10000),
 ):
     """Estimate ancestry composition from a DNA file."""
     from genomeinsight.ancestry import AncestryAnalyzer
