@@ -4,7 +4,7 @@
 
 **Goal:** Add a local-first FastAPI REST API with full CLI parity (all 6 analysis commands as HTTP endpoints).
 
-**Architecture:** Thin HTTP layer in `genomeinsight/api/` that delegates to existing analyzers. File input via local path or multipart upload. All endpoints return JSON; `/analyze` supports `?format=html`. Sync endpoints (CPU-bound work runs in FastAPI's threadpool).
+**Architecture:** Thin HTTP layer in `pydna_analyzer/api/` that delegates to existing analyzers. File input via local path or multipart upload. All endpoints return JSON; `/analyze` supports `?format=html`. Sync endpoints (CPU-bound work runs in FastAPI's threadpool).
 
 **Tech Stack:** FastAPI, uvicorn, python-multipart, httpx (test client via FastAPI's TestClient)
 
@@ -31,7 +31,7 @@ Update the `all` extra to include `api`:
 
 ```toml
 all = [
-    "genomeinsight[dev,prs,ancestry,ai,api]",
+    "pydna_analyzer[dev,prs,ancestry,ai,api]",
 ]
 ```
 
@@ -57,8 +57,8 @@ git commit -m "feat(api): add FastAPI optional dependencies"
 ### Task 2: Create App Factory and Health Endpoint
 
 **Files:**
-- Create: `genomeinsight/api/__init__.py`
-- Create: `genomeinsight/api/routes.py`
+- Create: `pydna_analyzer/api/__init__.py`
+- Create: `pydna_analyzer/api/routes.py`
 - Create: `tests/test_api.py`
 
 **Step 1: Write failing tests for health endpoint**
@@ -66,14 +66,14 @@ git commit -m "feat(api): add FastAPI optional dependencies"
 Create `tests/test_api.py`:
 
 ```python
-"""Tests for the GenomeInsight REST API."""
+"""Tests for the PyDNA Analyzer REST API."""
 
 from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
 
-from genomeinsight.api import create_app
+from pydna_analyzer.api import create_app
 
 
 @pytest.fixture
@@ -100,27 +100,27 @@ class TestHealthEndpoint:
 **Step 2: Run tests to verify they fail**
 
 Run: `uv run pytest tests/test_api.py -v`
-Expected: FAIL — `ModuleNotFoundError: No module named 'genomeinsight.api'`
+Expected: FAIL — `ModuleNotFoundError: No module named 'pydna_analyzer.api'`
 
 **Step 3: Implement app factory and health route**
 
-Create `genomeinsight/api/__init__.py`:
+Create `pydna_analyzer/api/__init__.py`:
 
 ```python
-"""GenomeInsight REST API."""
+"""PyDNA Analyzer REST API."""
 
 from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from genomeinsight import __version__
+from pydna_analyzer import __version__
 
 
 def create_app(cors_origins: list[str] | None = None) -> FastAPI:
     """Create and configure the FastAPI application."""
     app = FastAPI(
-        title="GenomeInsight API",
+        title="PyDNA Analyzer API",
         description="Privacy-first personal genomics analysis API",
         version=__version__,
     )
@@ -134,14 +134,14 @@ def create_app(cors_origins: list[str] | None = None) -> FastAPI:
         allow_headers=["*"],
     )
 
-    from genomeinsight.api.routes import router
+    from pydna_analyzer.api.routes import router
 
     app.include_router(router)
 
     return app
 ```
 
-Create `genomeinsight/api/routes.py`:
+Create `pydna_analyzer/api/routes.py`:
 
 ```python
 """API route definitions."""
@@ -150,7 +150,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from genomeinsight import __version__
+from pydna_analyzer import __version__
 
 router = APIRouter()
 
@@ -169,7 +169,7 @@ Expected: 2 passed
 **Step 5: Commit**
 
 ```bash
-git add genomeinsight/api/__init__.py genomeinsight/api/routes.py tests/test_api.py
+git add pydna_analyzer/api/__init__.py pydna_analyzer/api/routes.py tests/test_api.py
 git commit -m "feat(api): add app factory and health endpoint"
 ```
 
@@ -178,8 +178,8 @@ git commit -m "feat(api): add app factory and health endpoint"
 ### Task 3: File Input Resolution Helper
 
 **Files:**
-- Create: `genomeinsight/api/schemas.py`
-- Modify: `genomeinsight/api/routes.py`
+- Create: `pydna_analyzer/api/schemas.py`
+- Modify: `pydna_analyzer/api/routes.py`
 - Modify: `tests/test_api.py`
 
 This task builds the shared `resolve_file_input()` function that all POST endpoints use.
@@ -229,7 +229,7 @@ Expected: FAIL — no `/info` endpoint
 
 **Step 3: Implement schemas and file resolution**
 
-Create `genomeinsight/api/schemas.py`:
+Create `pydna_analyzer/api/schemas.py`:
 
 ```python
 """API request/response schemas."""
@@ -270,7 +270,7 @@ async def resolve_file_input(
 
 **Step 4: Add the `/info` endpoint to routes.py**
 
-Add to `genomeinsight/api/routes.py`:
+Add to `pydna_analyzer/api/routes.py`:
 
 ```python
 import os
@@ -278,8 +278,8 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
-from genomeinsight import __version__
-from genomeinsight.api.schemas import resolve_file_input
+from pydna_analyzer import __version__
+from pydna_analyzer.api.schemas import resolve_file_input
 
 router = APIRouter()
 
@@ -294,7 +294,7 @@ def info(resolved_path: Path = Depends(resolve_file_input)):
     """Get information about a DNA data file."""
     tmp_file = not str(resolved_path).startswith("/") or "tmp" in str(resolved_path)
     try:
-        from genomeinsight.core.data_loader import load_dna_data
+        from pydna_analyzer.core.data_loader import load_dna_data
 
         dataset = load_dna_data(resolved_path)
         return {
@@ -327,7 +327,7 @@ Expected: All 6 tests pass (2 health + 4 file input)
 **Step 6: Commit**
 
 ```bash
-git add genomeinsight/api/schemas.py genomeinsight/api/routes.py tests/test_api.py
+git add pydna_analyzer/api/schemas.py pydna_analyzer/api/routes.py tests/test_api.py
 git commit -m "feat(api): add file input resolution and /info endpoint"
 ```
 
@@ -336,7 +336,7 @@ git commit -m "feat(api): add file input resolution and /info endpoint"
 ### Task 4: Variants Endpoint (GET)
 
 **Files:**
-- Modify: `genomeinsight/api/routes.py`
+- Modify: `pydna_analyzer/api/routes.py`
 - Modify: `tests/test_api.py`
 
 **Step 1: Write failing test**
@@ -369,13 +369,13 @@ Expected: FAIL — 404 or no route
 
 **Step 3: Implement**
 
-Add to `genomeinsight/api/routes.py`:
+Add to `pydna_analyzer/api/routes.py`:
 
 ```python
 @router.get("/variants")
 def variants():
     """List all clinical variants in the database."""
-    from genomeinsight.clinical.variants import CLINICAL_VARIANTS
+    from pydna_analyzer.clinical.variants import CLINICAL_VARIANTS
 
     return {
         "variants": [
@@ -401,7 +401,7 @@ Expected: All 8 tests pass
 **Step 5: Commit**
 
 ```bash
-git add genomeinsight/api/routes.py tests/test_api.py
+git add pydna_analyzer/api/routes.py tests/test_api.py
 git commit -m "feat(api): add GET /variants endpoint"
 ```
 
@@ -410,7 +410,7 @@ git commit -m "feat(api): add GET /variants endpoint"
 ### Task 5: Analyze Endpoint
 
 **Files:**
-- Modify: `genomeinsight/api/routes.py`
+- Modify: `pydna_analyzer/api/routes.py`
 - Modify: `tests/test_api.py`
 
 **Step 1: Write failing tests**
@@ -457,7 +457,7 @@ Expected: FAIL
 
 **Step 3: Implement**
 
-Add to `genomeinsight/api/routes.py`:
+Add to `pydna_analyzer/api/routes.py`:
 
 ```python
 from fastapi.responses import HTMLResponse
@@ -470,15 +470,15 @@ def analyze(
 ):
     """Analyze DNA data for clinical variants."""
     try:
-        from genomeinsight.core.data_loader import load_dna_data
-        from genomeinsight.clinical.analyzer import ClinicalAnalyzer
+        from pydna_analyzer.core.data_loader import load_dna_data
+        from pydna_analyzer.clinical.analyzer import ClinicalAnalyzer
 
         dataset = load_dna_data(resolved_path)
         analyzer = ClinicalAnalyzer()
         result = analyzer.analyze(dataset)
 
         if format == "html":
-            from genomeinsight.reports.html_report import generate_html_report
+            from pydna_analyzer.reports.html_report import generate_html_report
             import tempfile
 
             tmp_html = Path(tempfile.mktemp(suffix=".html"))
@@ -504,7 +504,7 @@ Expected: All 12 tests pass
 **Step 5: Commit**
 
 ```bash
-git add genomeinsight/api/routes.py tests/test_api.py
+git add pydna_analyzer/api/routes.py tests/test_api.py
 git commit -m "feat(api): add POST /analyze endpoint with HTML support"
 ```
 
@@ -513,7 +513,7 @@ git commit -m "feat(api): add POST /analyze endpoint with HTML support"
 ### Task 6: PGx Endpoint
 
 **Files:**
-- Modify: `genomeinsight/api/routes.py`
+- Modify: `pydna_analyzer/api/routes.py`
 - Modify: `tests/test_api.py`
 
 **Step 1: Write failing tests**
@@ -562,7 +562,7 @@ Expected: FAIL
 
 **Step 3: Implement**
 
-Add to `genomeinsight/api/routes.py`:
+Add to `pydna_analyzer/api/routes.py`:
 
 ```python
 @router.post("/pgx")
@@ -572,8 +572,8 @@ def pgx(
 ):
     """Pharmacogenomics analysis."""
     try:
-        from genomeinsight.core.data_loader import load_dna_data
-        from genomeinsight.pharmacogenomics import PGxAnalyzer, PGxResult
+        from pydna_analyzer.core.data_loader import load_dna_data
+        from pydna_analyzer.pharmacogenomics import PGxAnalyzer, PGxResult
 
         dataset = load_dna_data(resolved_path)
         analyzer = PGxAnalyzer()
@@ -613,7 +613,7 @@ Expected: All 15 tests pass
 **Step 5: Commit**
 
 ```bash
-git add genomeinsight/api/routes.py tests/test_api.py
+git add pydna_analyzer/api/routes.py tests/test_api.py
 git commit -m "feat(api): add POST /pgx endpoint with gene filter"
 ```
 
@@ -622,7 +622,7 @@ git commit -m "feat(api): add POST /pgx endpoint with gene filter"
 ### Task 7: Ancestry Endpoint
 
 **Files:**
-- Modify: `genomeinsight/api/routes.py`
+- Modify: `pydna_analyzer/api/routes.py`
 - Modify: `tests/test_api.py`
 
 **Step 1: Write failing tests**
@@ -666,7 +666,7 @@ Expected: FAIL
 
 **Step 3: Implement**
 
-Add to `genomeinsight/api/routes.py`:
+Add to `pydna_analyzer/api/routes.py`:
 
 ```python
 @router.post("/ancestry")
@@ -676,8 +676,8 @@ def ancestry(
 ):
     """Estimate ancestry composition."""
     try:
-        from genomeinsight.core.data_loader import load_dna_data
-        from genomeinsight.ancestry import AncestryAnalyzer
+        from pydna_analyzer.core.data_loader import load_dna_data
+        from pydna_analyzer.ancestry import AncestryAnalyzer
 
         dataset = load_dna_data(resolved_path)
         analyzer = AncestryAnalyzer(n_bootstrap=bootstrap)
@@ -716,7 +716,7 @@ Expected: All 18 tests pass
 **Step 5: Commit**
 
 ```bash
-git add genomeinsight/api/routes.py tests/test_api.py
+git add pydna_analyzer/api/routes.py tests/test_api.py
 git commit -m "feat(api): add POST /ancestry endpoint"
 ```
 
@@ -725,8 +725,8 @@ git commit -m "feat(api): add POST /ancestry endpoint"
 ### Task 8: PRS Endpoint (Dual File Input)
 
 **Files:**
-- Modify: `genomeinsight/api/schemas.py`
-- Modify: `genomeinsight/api/routes.py`
+- Modify: `pydna_analyzer/api/schemas.py`
+- Modify: `pydna_analyzer/api/routes.py`
 - Modify: `tests/test_api.py`
 
 This is the trickiest endpoint — it needs two files (DNA data + weights).
@@ -789,7 +789,7 @@ Expected: FAIL
 
 **Step 3: Implement dual file resolution**
 
-Add to `genomeinsight/api/schemas.py` a second resolver for the weights file:
+Add to `pydna_analyzer/api/schemas.py` a second resolver for the weights file:
 
 ```python
 async def resolve_weights_input(
@@ -814,10 +814,10 @@ async def resolve_weights_input(
     raise HTTPException(status_code=422, detail="Provide either 'weights_file' upload or 'weights_path'")
 ```
 
-Add PRS endpoint to `genomeinsight/api/routes.py`:
+Add PRS endpoint to `pydna_analyzer/api/routes.py`:
 
 ```python
-from genomeinsight.api.schemas import resolve_file_input, resolve_weights_input
+from pydna_analyzer.api.schemas import resolve_file_input, resolve_weights_input
 
 
 @router.post("/prs")
@@ -828,8 +828,8 @@ def prs(
 ):
     """Calculate polygenic risk score."""
     try:
-        from genomeinsight.core.data_loader import load_dna_data
-        from genomeinsight.polygenic import PRSCalculator
+        from pydna_analyzer.core.data_loader import load_dna_data
+        from pydna_analyzer.polygenic import PRSCalculator
 
         dataset = load_dna_data(resolved_path)
         calculator = PRSCalculator()
@@ -863,7 +863,7 @@ Expected: All 21 tests pass
 **Step 5: Commit**
 
 ```bash
-git add genomeinsight/api/schemas.py genomeinsight/api/routes.py tests/test_api.py
+git add pydna_analyzer/api/schemas.py pydna_analyzer/api/routes.py tests/test_api.py
 git commit -m "feat(api): add POST /prs endpoint with dual file input"
 ```
 
@@ -872,7 +872,7 @@ git commit -m "feat(api): add POST /prs endpoint with dual file input"
 ### Task 9: CLI `serve` Command
 
 **Files:**
-- Modify: `genomeinsight/cli.py`
+- Modify: `pydna_analyzer/cli.py`
 - Modify: `tests/test_api.py`
 
 **Step 1: Write failing test**
@@ -881,7 +881,7 @@ Add to `tests/test_api.py`:
 
 ```python
 from typer.testing import CliRunner
-from genomeinsight.cli import app as cli_app
+from pydna_analyzer.cli import app as cli_app
 
 
 class TestServeCLI:
@@ -900,7 +900,7 @@ Expected: FAIL — no `serve` command
 
 **Step 3: Implement**
 
-Add to `genomeinsight/cli.py` (after the ancestry command):
+Add to `pydna_analyzer/cli.py` (after the ancestry command):
 
 ```python
 @app.command()
@@ -910,12 +910,12 @@ def serve(
     reload: bool = typer.Option(False, "--reload", help="Enable auto-reload for development"),
 ):
     """
-    Start the GenomeInsight REST API server.
+    Start the PyDNA Analyzer REST API server.
 
     Examples:
-        genomeinsight serve
-        genomeinsight serve --port 9000
-        genomeinsight serve --reload
+        pydna_analyzer serve
+        pydna_analyzer serve --port 9000
+        pydna_analyzer serve --reload
     """
     try:
         import uvicorn
@@ -925,17 +925,17 @@ def serve(
         raise typer.Exit(1)
 
     try:
-        from genomeinsight.api import create_app  # noqa: F401
+        from pydna_analyzer.api import create_app  # noqa: F401
     except ImportError:
         console.print("[red]Missing dependency: fastapi[/]")
         console.print("[dim]Install with: uv sync --extra api[/]")
         raise typer.Exit(1)
 
-    console.print(f"[bold blue]🧬 GenomeInsight API[/] starting on http://{host}:{port}")
+    console.print(f"[bold blue]🧬 PyDNA Analyzer API[/] starting on http://{host}:{port}")
     console.print("[dim]API docs: http://{}:{}/docs[/]".format(host, port))
 
     uvicorn.run(
-        "genomeinsight.api:create_app",
+        "pydna_analyzer.api:create_app",
         host=host,
         port=port,
         reload=reload,
@@ -951,7 +951,7 @@ Expected: All 22 tests pass
 **Step 5: Commit**
 
 ```bash
-git add genomeinsight/cli.py tests/test_api.py
+git add pydna_analyzer/cli.py tests/test_api.py
 git commit -m "feat(api): add 'serve' CLI command"
 ```
 
@@ -960,7 +960,7 @@ git commit -m "feat(api): add 'serve' CLI command"
 ### Task 10: Error Handling and Edge Cases
 
 **Files:**
-- Modify: `genomeinsight/api/routes.py`
+- Modify: `pydna_analyzer/api/routes.py`
 - Modify: `tests/test_api.py`
 
 **Step 1: Write failing tests for error scenarios**
@@ -994,7 +994,7 @@ class TestErrorHandling:
 
 Run: `uv run pytest tests/test_api.py::TestErrorHandling -v`
 
-If any return 500 instead of 422, add a global exception handler in `genomeinsight/api/__init__.py`:
+If any return 500 instead of 422, add a global exception handler in `pydna_analyzer/api/__init__.py`:
 
 ```python
 from fastapi import Request
@@ -1018,7 +1018,7 @@ Expected: All ~188 tests pass (163 existing + ~25 new)
 **Step 5: Commit**
 
 ```bash
-git add genomeinsight/api/ tests/test_api.py
+git add pydna_analyzer/api/ tests/test_api.py
 git commit -m "feat(api): add error handling and edge case tests"
 ```
 
@@ -1029,7 +1029,7 @@ git commit -m "feat(api): add error handling and edge case tests"
 **Files:**
 - Modify: `CLAUDE.md`
 - Modify: `README.md`
-- Modify: `genomeinsight/__init__.py`
+- Modify: `pydna_analyzer/__init__.py`
 
 **Step 1: Update CLAUDE.md**
 
@@ -1037,9 +1037,9 @@ Add to the Commands section:
 
 ```bash
 # API Server
-uv run genomeinsight serve                          # Start on localhost:8000
-uv run genomeinsight serve --port 9000              # Custom port
-uv run genomeinsight serve --reload                 # Dev mode with auto-reload
+uv run pydna_analyzer serve                          # Start on localhost:8000
+uv run pydna_analyzer serve --port 9000              # Custom port
+uv run pydna_analyzer serve --reload                 # Dev mode with auto-reload
 ```
 
 Add to Architecture → Module Map:

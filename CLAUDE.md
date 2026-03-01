@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-GenomeInsight is a privacy-first personal genomics toolkit that analyzes DNA data from consumer testing services (AncestryDNA, 23andMe, MyHeritage, VCF). All processing is local — no data is uploaded.
+PyDNA Analyzer is a privacy-first personal genomics toolkit that analyzes DNA data from consumer testing services (AncestryDNA, 23andMe, MyHeritage, VCF). All processing is local — no data is uploaded.
 
 ## Commands
 
@@ -14,31 +14,31 @@ uv sync                    # Base dependencies
 uv sync --all-extras       # All optional features (ai, prs, pgx, ancestry, api, dev)
 
 # Run CLI
-uv run genomeinsight analyze <file>
-uv run genomeinsight prs <file> --weights <weights.csv>
-uv run genomeinsight pgx <file>                          # All 6 genes
-uv run genomeinsight pgx <file> --gene CYP2C19            # Single gene
-uv run genomeinsight pgx <file> -o results.json           # JSON export
-uv run genomeinsight ancestry <file>                     # Ancestry estimation
-uv run genomeinsight ancestry <file> -o ancestry.json    # JSON export
-uv run genomeinsight ancestry <file> --bootstrap 200     # More CI iterations
-uv run genomeinsight info <file>
-uv run genomeinsight variants
-uv run genomeinsight serve                             # Start API on localhost:8000
-uv run genomeinsight serve --port 9000                 # Custom port
-uv run genomeinsight serve --reload                    # Dev mode with auto-reload
+uv run pydna-analyzer analyze <file>
+uv run pydna-analyzer prs <file> --weights <weights.csv>
+uv run pydna-analyzer pgx <file>                          # All 6 genes
+uv run pydna-analyzer pgx <file> --gene CYP2C19            # Single gene
+uv run pydna-analyzer pgx <file> -o results.json           # JSON export
+uv run pydna-analyzer ancestry <file>                     # Ancestry estimation
+uv run pydna-analyzer ancestry <file> -o ancestry.json    # JSON export
+uv run pydna-analyzer ancestry <file> --bootstrap 200     # More CI iterations
+uv run pydna-analyzer info <file>
+uv run pydna-analyzer variants
+uv run pydna-analyzer serve                             # Start API on localhost:8000
+uv run pydna-analyzer serve --port 9000                 # Custom port
+uv run pydna-analyzer serve --reload                    # Dev mode with auto-reload
 
 # Tests
 uv run pytest                                          # All tests
 uv run pytest tests/test_prs.py                        # Single file
 uv run pytest tests/test_prs.py::TestPRSCalculator     # Single class
 uv run pytest tests/test_prs.py::TestPRSCalculator::test_calculate_returns_result  # Single test
-uv run pytest --cov=genomeinsight                      # With coverage
+uv run pytest --cov=pydna_analyzer                      # With coverage
 
 # Linting & formatting
 uv run ruff check .          # Lint
 uv run ruff format .         # Format
-uv run mypy genomeinsight    # Type check
+uv run mypy pydna_analyzer    # Type check
 ```
 
 ## Architecture
@@ -55,7 +55,7 @@ DNA File → DataLoader (auto-detect format) → DNADataset (pydantic) → Analy
 
 ### Module Map
 
-- **`cli.py`** — Typer CLI. Orchestrates all modules. Entry point: `genomeinsight.cli:app`
+- **`cli.py`** — Typer CLI. Orchestrates all modules. Entry point: `pydna_analyzer.cli:app`
 - **`core/data_loader.py`** — Multi-format parsers using strategy pattern (BaseLoader → AncestryDNALoader, TwentyThreeMeLoader, MyHeritageLoader, VCFLoader). `load_dna_data()` auto-detects format.
 - **`clinical/`** — Variant analysis:
   - `variants.py` — Curated database of 35+ clinical SNPs as pydantic models

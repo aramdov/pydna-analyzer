@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 import numpy as np
 from numpy.typing import NDArray
 
-from genomeinsight.ancestry.reference_data import AIMDatabase
+from pydna_analyzer.ancestry.reference_data import AIMDatabase
 
 
 @dataclass

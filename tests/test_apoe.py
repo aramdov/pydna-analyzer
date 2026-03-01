@@ -3,8 +3,8 @@
 import pytest
 from pathlib import Path
 
-from genomeinsight.core.data_loader import load_dna_data
-from genomeinsight.clinical.apoe import determine_apoe_from_dataset, APOEResult
+from pydna_analyzer.core.data_loader import load_dna_data
+from pydna_analyzer.clinical.apoe import determine_apoe_from_dataset, APOEResult
 
 
 class TestAPOEGenotyping:

@@ -18,7 +18,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from genomeinsight.core.data_loader import DNADataset
+from pydna_analyzer.core.data_loader import DNADataset
 
 # =============================================================================
 # Enums

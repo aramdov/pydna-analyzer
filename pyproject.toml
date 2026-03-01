@@ -3,13 +3,13 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "genomeinsight"
+name = "pydna-analyzer"
 version = "0.1.0"
 description = "A privacy-first personal genomics toolkit for analyzing DNA data from consumer testing services"
 readme = "README.md"
 license = "MIT"
 authors = [
-    { name = "GenomeInsight Contributors" }
+    { name = "PyDNA Analyzer Contributors" }
 ]
 keywords = [
     "genomics",
@@ -74,21 +74,21 @@ ai = [
     "anthropic>=0.20",
 ]
 all = [
-    "genomeinsight[dev,prs,ancestry,ai,api]",
+    "pydna-analyzer[dev,prs,ancestry,ai,api]",
 ]
 
 [project.scripts]
-genomeinsight = "genomeinsight.cli:app"
+pydna-analyzer = "pydna_analyzer.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/genomeinsight/genomeinsight"
-Documentation = "https://github.com/genomeinsight/genomeinsight#readme"
-Repository = "https://github.com/genomeinsight/genomeinsight"
-Issues = "https://github.com/genomeinsight/genomeinsight/issues"
-Changelog = "https://github.com/genomeinsight/genomeinsight/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/aramdov/pydna-analyzer"
+Documentation = "https://github.com/aramdov/pydna-analyzer#readme"
+Repository = "https://github.com/aramdov/pydna-analyzer"
+Issues = "https://github.com/aramdov/pydna-analyzer/issues"
+Changelog = "https://github.com/aramdov/pydna-analyzer/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
-packages = ["genomeinsight"]
+packages = ["pydna_analyzer"]
 
 # ==========================================
 # uv configuration

@@ -79,7 +79,7 @@ class TestLLMClients:
     
     def test_openai_client_requires_api_key(self):
         """Test OpenAI client raises error without API key."""
-        from genomeinsight.ai.client import OpenAIClient
+        from pydna_analyzer.ai.client import OpenAIClient
         
         with patch.dict("os.environ", {}, clear=True):
             with pytest.raises(ValueError, match="OpenAI API key required"):
@@ -87,7 +87,7 @@ class TestLLMClients:
     
     def test_anthropic_client_requires_api_key(self):
         """Test Anthropic client raises error without API key."""
-        from genomeinsight.ai.client import AnthropicClient
+        from pydna_analyzer.ai.client import AnthropicClient
         
         with patch.dict("os.environ", {}, clear=True):
             with pytest.raises(ValueError, match="Anthropic API key required"):
@@ -95,7 +95,7 @@ class TestLLMClients:
     
     def test_openai_client_accepts_api_key_param(self):
         """Test OpenAI client accepts API key as parameter."""
-        from genomeinsight.ai.client import OpenAIClient, LLMProvider
+        from pydna_analyzer.ai.client import OpenAIClient, LLMProvider
         
         client = OpenAIClient(api_key="test-key-123")
         assert client.api_key == "test-key-123"
@@ -103,7 +103,7 @@ class TestLLMClients:
     
     def test_anthropic_client_accepts_api_key_param(self):
         """Test Anthropic client accepts API key as parameter."""
-        from genomeinsight.ai.client import AnthropicClient, LLMProvider
+        from pydna_analyzer.ai.client import AnthropicClient, LLMProvider
         
         client = AnthropicClient(api_key="test-key-123")
         assert client.api_key == "test-key-123"
@@ -111,7 +111,7 @@ class TestLLMClients:
     
     def test_openai_client_from_env(self):
         """Test OpenAI client reads from environment."""
-        from genomeinsight.ai.client import OpenAIClient
+        from pydna_analyzer.ai.client import OpenAIClient
         
         with patch.dict("os.environ", {"OPENAI_API_KEY": "env-key-456"}):
             client = OpenAIClient()
@@ -119,7 +119,7 @@ class TestLLMClients:
     
     def test_anthropic_client_from_env(self):
         """Test Anthropic client reads from environment."""
-        from genomeinsight.ai.client import AnthropicClient
+        from pydna_analyzer.ai.client import AnthropicClient
         
         with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "env-key-789"}):
             client = AnthropicClient()
@@ -131,7 +131,7 @@ class TestGetClient:
     
     def test_get_client_no_keys_raises_error(self):
         """Test get_client raises error when no keys available."""
-        from genomeinsight.ai.client import get_client
+        from pydna_analyzer.ai.client import get_client
         
         with patch.dict("os.environ", {}, clear=True):
             with pytest.raises(ValueError, match="No API key found"):
@@ -139,7 +139,7 @@ class TestGetClient:
     
     def test_get_client_prefers_openai(self):
         """Test get_client prefers OpenAI when both keys present."""
-        from genomeinsight.ai.client import get_client, LLMProvider
+        from pydna_analyzer.ai.client import get_client, LLMProvider
         
         with patch.dict("os.environ", {
             "OPENAI_API_KEY": "openai-key",
@@ -150,7 +150,7 @@ class TestGetClient:
     
     def test_get_client_uses_anthropic_if_only_anthropic(self):
         """Test get_client uses Anthropic when only that key exists."""
-        from genomeinsight.ai.client import get_client, LLMProvider
+        from pydna_analyzer.ai.client import get_client, LLMProvider
         
         with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "anthropic-key"}, clear=True):
             client = get_client()
@@ -158,7 +158,7 @@ class TestGetClient:
     
     def test_get_client_explicit_provider(self):
         """Test get_client respects explicit provider."""
-        from genomeinsight.ai.client import get_client, LLMProvider
+        from pydna_analyzer.ai.client import get_client, LLMProvider
         
         with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "anthropic-key"}):
             client = get_client(provider=LLMProvider.ANTHROPIC)
@@ -170,7 +170,7 @@ class TestPrompts:
     
     def test_build_prompt_consumer_style(self):
         """Test consumer style prompt generation."""
-        from genomeinsight.ai.prompts import build_prompt
+        from pydna_analyzer.ai.prompts import build_prompt
         
         result = MockAnalysisResult()
         prompt = build_prompt(result, style="consumer")
@@ -180,7 +180,7 @@ class TestPrompts:
     
     def test_build_prompt_technical_style(self):
         """Test technical style prompt generation."""
-        from genomeinsight.ai.prompts import build_prompt
+        from pydna_analyzer.ai.prompts import build_prompt
         
         result = MockAnalysisResult()
         prompt = build_prompt(result, style="technical")
@@ -190,7 +190,7 @@ class TestPrompts:
     
     def test_format_apoe_section_with_status(self):
         """Test APOE section formatting with status."""
-        from genomeinsight.ai.prompts import format_apoe_section
+        from pydna_analyzer.ai.prompts import format_apoe_section
         
         apoe = MockAPOEResult()
         section = format_apoe_section(apoe)
@@ -200,21 +200,21 @@ class TestPrompts:
     
     def test_format_apoe_section_without_status(self):
         """Test APOE section formatting without status."""
-        from genomeinsight.ai.prompts import format_apoe_section
+        from pydna_analyzer.ai.prompts import format_apoe_section
         
         section = format_apoe_section(None)
         assert "not determined" in section.lower()
     
     def test_format_variant_section_empty(self):
         """Test empty variant section."""
-        from genomeinsight.ai.prompts import format_variant_section
+        from pydna_analyzer.ai.prompts import format_variant_section
         
         section = format_variant_section([])
         assert "none" in section.lower()
     
     def test_format_variant_section_with_variants(self):
         """Test variant section with data."""
-        from genomeinsight.ai.prompts import format_variant_section
+        from pydna_analyzer.ai.prompts import format_variant_section
         
         variants = [MockVariantResult()]
         section = format_variant_section(variants)
@@ -229,7 +229,7 @@ class TestReportGenerator:
     
     def test_generator_init_with_client(self):
         """Test generator initialization with client."""
-        from genomeinsight.ai.report_generator import AIReportGenerator
+        from pydna_analyzer.ai.report_generator import AIReportGenerator
         
         mock_client = Mock()
         generator = AIReportGenerator(client=mock_client)
@@ -237,8 +237,8 @@ class TestReportGenerator:
     
     def test_generator_generate_consumer_report(self):
         """Test consumer report generation."""
-        from genomeinsight.ai.report_generator import AIReportGenerator, ReportStyle
-        from genomeinsight.ai.client import LLMProvider
+        from pydna_analyzer.ai.report_generator import AIReportGenerator, ReportStyle
+        from pydna_analyzer.ai.client import LLMProvider
         
         mock_client = Mock()
         mock_client.provider = LLMProvider.OPENAI
@@ -249,14 +249,14 @@ class TestReportGenerator:
         
         report = generator.generate(result, style=ReportStyle.CONSUMER)
         
-        assert "GenomeInsight" in report
+        assert "PyDNA Analyzer" in report
         assert "Disclaimer" in report
         mock_client.generate.assert_called_once()
     
     def test_generator_generate_technical_report(self):
         """Test technical report generation."""
-        from genomeinsight.ai.report_generator import AIReportGenerator, ReportStyle
-        from genomeinsight.ai.client import LLMProvider
+        from pydna_analyzer.ai.report_generator import AIReportGenerator, ReportStyle
+        from pydna_analyzer.ai.client import LLMProvider
         
         mock_client = Mock()
         mock_client.provider = LLMProvider.ANTHROPIC
@@ -273,8 +273,8 @@ class TestReportGenerator:
     
     def test_generator_generate_both(self):
         """Test generating both report styles."""
-        from genomeinsight.ai.report_generator import AIReportGenerator
-        from genomeinsight.ai.client import LLMProvider
+        from pydna_analyzer.ai.report_generator import AIReportGenerator
+        from pydna_analyzer.ai.client import LLMProvider
         
         mock_client = Mock()
         mock_client.provider = LLMProvider.OPENAI
@@ -295,7 +295,7 @@ class TestOpenAIClientGeneration:
     
     def test_openai_generate_with_system_prompt(self):
         """Test OpenAI generation with system prompt."""
-        from genomeinsight.ai.client import OpenAIClient
+        from pydna_analyzer.ai.client import OpenAIClient
         
         # Create mock OpenAI SDK
         mock_openai_module = MagicMock()
@@ -327,7 +327,7 @@ class TestAnthropicClientGeneration:
     
     def test_anthropic_generate_with_system_prompt(self):
         """Test Anthropic generation with system prompt."""
-        from genomeinsight.ai.client import AnthropicClient
+        from pydna_analyzer.ai.client import AnthropicClient
         
         # Create mock Anthropic SDK
         mock_anthropic_module = MagicMock()

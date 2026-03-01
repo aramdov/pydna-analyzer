@@ -5,14 +5,14 @@ Generates natural language reports from genetic analysis results
 using OpenAI or Anthropic LLMs.
 """
 
-from genomeinsight.ai.client import (
+from pydna_analyzer.ai.client import (
     LLMClient,
     LLMProvider,
     OpenAIClient,
     AnthropicClient,
     get_client,
 )
-from genomeinsight.ai.report_generator import (
+from pydna_analyzer.ai.report_generator import (
     AIReportGenerator,
     ReportStyle,
 )

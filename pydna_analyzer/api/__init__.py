@@ -1,17 +1,17 @@
-"""GenomeInsight REST API."""
+"""PyDNA Analyzer REST API."""
 
 from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from genomeinsight import __version__
+from pydna_analyzer import __version__
 
 
 def create_app(cors_origins: list[str] | None = None) -> FastAPI:
     """Create and configure the FastAPI application."""
     app = FastAPI(
-        title="GenomeInsight API",
+        title="PyDNA Analyzer API",
         description="Privacy-first personal genomics analysis API",
         version=__version__,
     )
@@ -25,7 +25,7 @@ def create_app(cors_origins: list[str] | None = None) -> FastAPI:
         allow_headers=["*"],
     )
 
-    from genomeinsight.api.routes import router
+    from pydna_analyzer.api.routes import router
 
     app.include_router(router)
 

@@ -3,10 +3,10 @@
 import numpy as np
 from typer.testing import CliRunner
 
-from genomeinsight.ancestry import AncestryAnalyzer, AncestryResult
-from genomeinsight.ancestry.estimator import AncestryEstimator
-from genomeinsight.ancestry.reference_data import AIMDatabase
-from genomeinsight.cli import app
+from pydna_analyzer.ancestry import AncestryAnalyzer, AncestryResult
+from pydna_analyzer.ancestry.estimator import AncestryEstimator
+from pydna_analyzer.ancestry.reference_data import AIMDatabase
+from pydna_analyzer.cli import app
 
 
 class TestAIMDatabase:

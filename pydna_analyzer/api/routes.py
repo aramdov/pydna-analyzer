@@ -8,8 +8,8 @@ from enum import Enum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
 
-from genomeinsight import __version__
-from genomeinsight.api.schemas import (
+from pydna_analyzer import __version__
+from pydna_analyzer.api.schemas import (
     ResolvedFile,
     cleanup_temp,
     resolve_file_input,
@@ -28,7 +28,7 @@ def health():
 @router.post("/info")
 async def info(resolved: ResolvedFile = Depends(resolve_file_input)):  # noqa: B008
     """Return basic information about a DNA data file."""
-    from genomeinsight.core.data_loader import load_dna_data
+    from pydna_analyzer.core.data_loader import load_dna_data
 
     try:
         dataset = load_dna_data(resolved.path)
@@ -46,7 +46,7 @@ async def info(resolved: ResolvedFile = Depends(resolve_file_input)):  # noqa: B
 @router.get("/variants")
 def variants():
     """Return all clinical variants from the database."""
-    from genomeinsight.clinical.variants import CLINICAL_VARIANTS
+    from pydna_analyzer.clinical.variants import CLINICAL_VARIANTS
 
     return {
         "variants": [
@@ -77,7 +77,7 @@ def _deep_serialize(obj: object) -> object:
 
 def _serialize_analysis_result(result) -> dict:
     """Serialize an AnalysisResult dataclass to a JSON-safe dict."""
-    from genomeinsight.clinical.apoe import APOEResult
+    from pydna_analyzer.clinical.apoe import APOEResult
 
     def _serialize_variant(vr) -> dict:
         return _deep_serialize(dataclasses.asdict(vr))
@@ -113,8 +113,8 @@ async def analyze(
     format: str = Query("json", alias="format"),
 ):
     """Analyze a DNA file for clinical variants."""
-    from genomeinsight.clinical.analyzer import ClinicalAnalyzer
-    from genomeinsight.core.data_loader import load_dna_data
+    from pydna_analyzer.clinical.analyzer import ClinicalAnalyzer
+    from pydna_analyzer.core.data_loader import load_dna_data
 
     try:
         dataset = load_dna_data(resolved.path)
@@ -125,7 +125,7 @@ async def analyze(
             import tempfile
             from pathlib import Path
 
-            from genomeinsight.reports.html_report import generate_html_report
+            from pydna_analyzer.reports.html_report import generate_html_report
 
             tmp_path = None
             try:
@@ -184,8 +184,8 @@ async def pgx(
     gene: str | None = Query(None),
 ):
     """Run pharmacogenomics analysis on a DNA file."""
-    from genomeinsight.core.data_loader import load_dna_data
-    from genomeinsight.pharmacogenomics import PGxAnalyzer, PGxResult
+    from pydna_analyzer.core.data_loader import load_dna_data
+    from pydna_analyzer.pharmacogenomics import PGxAnalyzer, PGxResult
 
     try:
         dataset = load_dna_data(resolved.path)
@@ -224,8 +224,8 @@ async def prs(
     name: str | None = None,
 ):
     """Calculate a Polygenic Risk Score from a DNA file and weights CSV."""
-    from genomeinsight.core.data_loader import load_dna_data
-    from genomeinsight.polygenic import PRSCalculator
+    from pydna_analyzer.core.data_loader import load_dna_data
+    from pydna_analyzer.polygenic import PRSCalculator
 
     try:
         dataset = load_dna_data(resolved.path)
@@ -257,8 +257,8 @@ async def ancestry(
     bootstrap: int = Query(100, ge=10, le=10000),
 ):
     """Estimate ancestry composition from a DNA file."""
-    from genomeinsight.ancestry import AncestryAnalyzer
-    from genomeinsight.core.data_loader import load_dna_data
+    from pydna_analyzer.ancestry import AncestryAnalyzer
+    from pydna_analyzer.core.data_loader import load_dna_data
 
     try:
         dataset = load_dna_data(resolved.path)

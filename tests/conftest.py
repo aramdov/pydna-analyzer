@@ -1,4 +1,4 @@
-"""Pytest fixtures for GenomeInsight tests."""
+"""Pytest fixtures for PyDNA Analyzer tests."""
 
 from pathlib import Path
 
@@ -184,7 +184,7 @@ def pgx_missing_snps_content():
 
 def _make_dataset(tmp_path, content):
     """Helper to create a DNADataset from AncestryDNA-format content."""
-    from genomeinsight.core.data_loader import load_dna_data
+    from pydna_analyzer.core.data_loader import load_dna_data
 
     filepath = tmp_path / "pgx_test.txt"
     filepath.write_text(content)
@@ -236,7 +236,7 @@ ANCESTRY_HEADER = (
 @pytest.fixture
 def ancestry_dataset_factory(tmp_path):
     """Factory fixture: creates a DNADataset from a dict of rsid -> genotype."""
-    from genomeinsight.core.data_loader import load_dna_data
+    from pydna_analyzer.core.data_loader import load_dna_data
 
     def _make(genotypes: dict):
         lines = [ANCESTRY_HEADER]

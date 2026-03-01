@@ -15,7 +15,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from genomeinsight.core.data_loader import DNADataset
+from pydna_analyzer.core.data_loader import DNADataset
 
 
 class PRSNormalization(str, Enum):
@@ -186,8 +186,8 @@ class PRSCalculator:
     Calculate polygenic risk scores.
 
     Example:
-        >>> from genomeinsight import load_dna_data
-        >>> from genomeinsight.polygenic import PRSCalculator
+        >>> from pydna_analyzer import load_dna_data
+        >>> from pydna_analyzer.polygenic import PRSCalculator
         >>> 
         >>> dataset = load_dna_data("my_dna.txt")
         >>> calculator = PRSCalculator()
@@ -437,8 +437,8 @@ def calculate_prs(
         PRSResult with calculated score
 
     Example:
-        >>> from genomeinsight import load_dna_data
-        >>> from genomeinsight.polygenic import calculate_prs
+        >>> from pydna_analyzer import load_dna_data
+        >>> from pydna_analyzer.polygenic import calculate_prs
         >>> 
         >>> data = load_dna_data("my_dna.txt")
         >>> result = calculate_prs(data, "cad_weights.csv")

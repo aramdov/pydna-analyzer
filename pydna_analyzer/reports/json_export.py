@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import datetime
 from dataclasses import asdict
 
-from genomeinsight.clinical.analyzer import AnalysisResult
+from pydna_analyzer.clinical.analyzer import AnalysisResult
 
 
 def export_to_json(result: AnalysisResult, output_path: Path):
@@ -20,7 +20,7 @@ def export_to_json(result: AnalysisResult, output_path: Path):
         result: AnalysisResult to export
         output_path: Path for output JSON file
     """
-    from genomeinsight import __version__
+    from pydna_analyzer import __version__
     
     # Convert dataclasses to dicts
     def serialize_variant(v):

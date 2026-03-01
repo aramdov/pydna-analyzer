@@ -6,7 +6,7 @@
 
 ## Overview
 
-Add sub-continental ancestry composition estimation to GenomeInsight using likelihood-based admixture analysis with bundled reference allele frequencies from 1000 Genomes Phase 3.
+Add sub-continental ancestry composition estimation to PyDNA Analyzer using likelihood-based admixture analysis with bundled reference allele frequencies from 1000 Genomes Phase 3.
 
 ## Goals
 
@@ -38,7 +38,7 @@ Add sub-continental ancestry composition estimation to GenomeInsight using likel
 ## Architecture
 
 ```
-genomeinsight/ancestry/
+pydna_analyzer/ancestry/
 ├── __init__.py          # Public API: AncestryAnalyzer, AncestryResult, PopulationResult
 ├── reference_data.py    # AIMDatabase: loads/validates bundled JSON
 ├── estimator.py         # AncestryEstimator: MLE optimization + bootstrap CI
@@ -98,7 +98,7 @@ class AncestryResult:
 
 ### CLI Command
 
-`genomeinsight ancestry <file>` with `--json` and `-o` options.
+`pydna_analyzer ancestry <file>` with `--json` and `-o` options.
 
 Output: Rich table with population percentages, visual bars, 95% CI, regional summary, and interpretation text.
 

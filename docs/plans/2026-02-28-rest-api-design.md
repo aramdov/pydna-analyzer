@@ -1,11 +1,11 @@
-# REST API Design — GenomeInsight
+# REST API Design — PyDNA Analyzer
 
 **Date**: 2026-02-28
 **Status**: Complete (merged to main 2026-03-01)
 
 ## Overview
 
-Add a local-first REST API to GenomeInsight using FastAPI. The API wraps existing analysis
+Add a local-first REST API to PyDNA Analyzer using FastAPI. The API wraps existing analysis
 pipelines behind HTTP endpoints, enabling integration with local AI agents, MCP servers,
 scripts, and a future web dashboard. All processing remains local — consistent with the
 project's privacy-first philosophy.
@@ -23,7 +23,7 @@ project's privacy-first philosophy.
 ## Module Structure
 
 ```
-genomeinsight/api/
+pydna_analyzer/api/
 ├── __init__.py      # create_app() factory
 ├── routes.py        # All endpoint definitions
 └── schemas.py       # Request/response Pydantic models
@@ -83,7 +83,7 @@ event loop blocking during long computations like ancestry bootstrap.
 
 New command:
 ```
-genomeinsight serve [--host localhost] [--port 8000] [--reload]
+pydna_analyzer serve [--host localhost] [--port 8000] [--reload]
 ```
 
 Lazy imports uvicorn and create_app. Friendly error if FastAPI not installed.

@@ -12,7 +12,7 @@ from typing import Optional
 
 import pandas as pd
 
-from genomeinsight.clinical.variants import (
+from pydna_analyzer.clinical.variants import (
     CLINICAL_VARIANTS,
     Category,
     ClinicalVariant,
@@ -21,8 +21,8 @@ from genomeinsight.clinical.variants import (
     get_all_rsids,
     get_interacting_variants,
 )
-from genomeinsight.clinical.apoe import APOEResult, determine_apoe_from_dataset
-from genomeinsight.core.data_loader import DNADataset
+from pydna_analyzer.clinical.apoe import APOEResult, determine_apoe_from_dataset
+from pydna_analyzer.core.data_loader import DNADataset
 
 
 @dataclass
@@ -78,7 +78,7 @@ class ClinicalAnalyzer:
     Analyze DNA data for clinically significant variants.
     
     Example:
-        >>> from genomeinsight import load_dna_data, ClinicalAnalyzer
+        >>> from pydna_analyzer import load_dna_data, ClinicalAnalyzer
         >>> data = load_dna_data("AncestryDNA.txt")
         >>> analyzer = ClinicalAnalyzer()
         >>> result = analyzer.analyze(data)

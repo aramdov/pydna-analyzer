@@ -1,1 +1,1 @@
-# Test fixtures and sample data for GenomeInsight tests
+# Test fixtures and sample data for PyDNA Analyzer tests

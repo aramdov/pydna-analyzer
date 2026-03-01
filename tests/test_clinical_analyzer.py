@@ -2,9 +2,9 @@
 
 import pytest
 
-from genomeinsight.core.data_loader import load_dna_data
-from genomeinsight.clinical.analyzer import ClinicalAnalyzer, AnalysisResult
-from genomeinsight.clinical.variants import RiskLevel, Category
+from pydna_analyzer.core.data_loader import load_dna_data
+from pydna_analyzer.clinical.analyzer import ClinicalAnalyzer, AnalysisResult
+from pydna_analyzer.clinical.variants import RiskLevel, Category
 
 
 class TestClinicalAnalyzer:

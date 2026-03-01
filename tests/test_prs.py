@@ -3,8 +3,8 @@
 import pytest
 from pathlib import Path
 
-from genomeinsight.core.data_loader import load_dna_data
-from genomeinsight.polygenic import (
+from pydna_analyzer.core.data_loader import load_dna_data
+from pydna_analyzer.polygenic import (
     PRSCalculator,
     PRSResult,
     PRSWeightLoader,

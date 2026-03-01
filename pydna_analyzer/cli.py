@@ -1,5 +1,5 @@
 """
-GenomeInsight CLI.
+PyDNA Analyzer CLI.
 
 Modern command-line interface for personal genomics analysis.
 """
@@ -16,16 +16,16 @@ from rich.table import Table
 from rich.text import Text
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from genomeinsight import __version__
-from genomeinsight.core.data_loader import load_dna_data, DataFormat
-from genomeinsight.clinical.analyzer import ClinicalAnalyzer, AnalysisResult
-from genomeinsight.clinical.variants import RiskLevel, Category
-from genomeinsight.reports.html_report import generate_html_report
-from genomeinsight.reports.json_export import export_to_json
+from pydna_analyzer import __version__
+from pydna_analyzer.core.data_loader import load_dna_data, DataFormat
+from pydna_analyzer.clinical.analyzer import ClinicalAnalyzer, AnalysisResult
+from pydna_analyzer.clinical.variants import RiskLevel, Category
+from pydna_analyzer.reports.html_report import generate_html_report
+from pydna_analyzer.reports.json_export import export_to_json
 
 app = typer.Typer(
-    name="genomeinsight",
-    help="🧬 GenomeInsight: Personal genomics toolkit for DTC DNA analysis",
+    name="pydna-analyzer",
+    help="🧬 PyDNA Analyzer: Personal genomics toolkit for DTC DNA analysis",
     add_completion=False,
 )
 console = Console()
@@ -54,7 +54,7 @@ CATEGORY_ICONS = {
 def version_callback(value: bool):
     """Show version and exit."""
     if value:
-        console.print(f"[bold blue]GenomeInsight[/] version {__version__}")
+        console.print(f"[bold blue]PyDNA Analyzer[/] version {__version__}")
         raise typer.Exit()
 
 
@@ -69,7 +69,7 @@ def main(
         help="Show version",
     ),
 ):
-    """GenomeInsight: Comprehensive personal genomics toolkit."""
+    """PyDNA Analyzer: Comprehensive personal genomics toolkit."""
     pass
 
 
@@ -133,10 +133,10 @@ def analyze(
     Analyze DNA data for clinical variants.
     
     Examples:
-        genomeinsight analyze AncestryDNA.txt
-        genomeinsight analyze 23andme.txt --html -o report.html
-        genomeinsight analyze data.vcf --json -o results.json
-        genomeinsight analyze data.txt --ai --ai-style consumer
+        pydna-analyzer analyze AncestryDNA.txt
+        pydna-analyzer analyze 23andme.txt --html -o report.html
+        pydna-analyzer analyze data.vcf --json -o results.json
+        pydna-analyzer analyze data.txt --ai --ai-style consumer
     """
     # Determine format
     data_format = DataFormat.AUTO
@@ -180,12 +180,12 @@ def analyze(
     
     # Output results
     if json_output or (output and output.suffix == '.json'):
-        output_path = output or Path("genomeinsight_results.json")
+        output_path = output or Path("pydna_analyzer_results.json")
         export_to_json(result, output_path)
         console.print(f"[green]✓[/] Results saved to {output_path}")
     
     if html or (output and output.suffix == '.html'):
-        output_path = output if output and output.suffix == '.html' else Path("genomeinsight_report.html")
+        output_path = output if output and output.suffix == '.html' else Path("pydna_analyzer_report.html")
         generate_html_report(result, output_path)
         console.print(f"[green]✓[/] HTML report saved to {output_path}")
     
@@ -212,7 +212,7 @@ def _generate_ai_report(
     quiet: bool,
 ):
     """Generate AI-powered natural language report."""
-    from genomeinsight.ai import AIReportGenerator, ReportStyle, LLMProvider, get_client
+    from pydna_analyzer.ai import AIReportGenerator, ReportStyle, LLMProvider, get_client
     
     # Validate style
     valid_styles = ["technical", "consumer", "both"]
@@ -296,7 +296,7 @@ def _print_summary(result: AnalysisResult):
     
     # Header
     console.print(Panel.fit(
-        "[bold blue]🧬 GenomeInsight Analysis Report[/]",
+        "[bold blue]🧬 PyDNA Analyzer Analysis Report[/]",
         border_style="blue",
     ))
     console.print()
@@ -397,7 +397,7 @@ def variants():
     """
     List all clinical variants in the database.
     """
-    from genomeinsight.clinical.variants import CLINICAL_VARIANTS
+    from pydna_analyzer.clinical.variants import CLINICAL_VARIANTS
     
     table = Table(title="📚 Clinical Variants Database", show_lines=True)
     table.add_column("rsID", style="cyan")
@@ -452,10 +452,10 @@ def prs(
     Calculate polygenic risk score from weights file.
     
     Examples:
-        genomeinsight prs my_dna.txt --weights cad_prs.csv
-        genomeinsight prs data.txt -w heart_disease.csv -n "Heart Disease Risk"
+        pydna-analyzer prs my_dna.txt --weights cad_prs.csv
+        pydna-analyzer prs data.txt -w heart_disease.csv -n "Heart Disease Risk"
     """
-    from genomeinsight.polygenic import PRSCalculator
+    from pydna_analyzer.polygenic import PRSCalculator
     
     # Load DNA data
     with Progress(
@@ -573,11 +573,11 @@ def pgx(
     Pharmacogenomics analysis: star alleles, metabolizer phenotypes, drug recommendations.
 
     Examples:
-        genomeinsight pgx AncestryDNA.txt
-        genomeinsight pgx data.txt --gene CYP2C19
-        genomeinsight pgx data.txt -o pgx_results.json
+        pydna-analyzer pgx AncestryDNA.txt
+        pydna-analyzer pgx data.txt --gene CYP2C19
+        pydna-analyzer pgx data.txt -o pgx_results.json
     """
-    from genomeinsight.pharmacogenomics import PGxAnalyzer, MetabolizerPhenotype
+    from pydna_analyzer.pharmacogenomics import PGxAnalyzer, MetabolizerPhenotype
 
     # Load data
     with Progress(
@@ -613,7 +613,7 @@ def pgx(
                 )
                 raise typer.Exit(1)
             # Wrap in PGxResult for consistent display
-            from genomeinsight.pharmacogenomics import PGxResult
+            from pydna_analyzer.pharmacogenomics import PGxResult
 
             result = PGxResult(
                 gene_results=[single_result],
@@ -664,7 +664,7 @@ def pgx(
 
 def _print_pgx_results(result):
     """Print pharmacogenomics results with Rich tables."""
-    from genomeinsight.pharmacogenomics import MetabolizerPhenotype
+    from pydna_analyzer.pharmacogenomics import MetabolizerPhenotype
 
     console.print()
     console.print(
@@ -779,11 +779,11 @@ def ancestry(
     to estimate population proportions with confidence intervals.
 
     Examples:
-        genomeinsight ancestry AncestryDNA.txt
-        genomeinsight ancestry data.txt -o ancestry.json
-        genomeinsight ancestry data.txt --bootstrap 200
+        pydna-analyzer ancestry AncestryDNA.txt
+        pydna-analyzer ancestry data.txt -o ancestry.json
+        pydna-analyzer ancestry data.txt --bootstrap 200
     """
-    from genomeinsight.ancestry import AncestryAnalyzer
+    from pydna_analyzer.ancestry import AncestryAnalyzer
 
     # Load data
     with Progress(
@@ -914,12 +914,12 @@ def serve(
     reload: bool = typer.Option(False, "--reload", help="Enable auto-reload for development"),
 ):
     """
-    Start the GenomeInsight REST API server.
+    Start the PyDNA Analyzer REST API server.
 
     Examples:
-        genomeinsight serve
-        genomeinsight serve --port 9000
-        genomeinsight serve --reload
+        pydna-analyzer serve
+        pydna-analyzer serve --port 9000
+        pydna-analyzer serve --reload
     """
     try:
         import uvicorn
@@ -929,17 +929,17 @@ def serve(
         raise typer.Exit(1)
 
     try:
-        from genomeinsight.api import create_app  # noqa: F401
+        from pydna_analyzer.api import create_app  # noqa: F401
     except ImportError:
         console.print("[red]Missing dependency: fastapi[/]")
         console.print("[dim]Install with: uv sync --extra api[/]")
         raise typer.Exit(1)
 
-    console.print(f"[bold blue]🧬 GenomeInsight API[/] starting on http://{host}:{port}")
+    console.print(f"[bold blue]🧬 PyDNA Analyzer API[/] starting on http://{host}:{port}")
     console.print("[dim]API docs: http://{}:{}/docs[/]".format(host, port))
 
     uvicorn.run(
-        "genomeinsight.api:create_app",
+        "pydna_analyzer.api:create_app",
         host=host,
         port=port,
         reload=reload,

@@ -3,7 +3,7 @@
 import pytest
 from pathlib import Path
 
-from genomeinsight.core.data_loader import (
+from pydna_analyzer.core.data_loader import (
     load_dna_data,
     detect_format,
     DataFormat,

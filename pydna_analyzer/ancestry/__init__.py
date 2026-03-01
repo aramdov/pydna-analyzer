@@ -7,9 +7,9 @@ Pipeline:
 
 from __future__ import annotations
 
-from genomeinsight.ancestry.estimator import AncestryEstimator, AncestryResult, PopulationResult
-from genomeinsight.ancestry.reference_data import AIMDatabase
-from genomeinsight.core.data_loader import DNADataset
+from pydna_analyzer.ancestry.estimator import AncestryEstimator, AncestryResult, PopulationResult
+from pydna_analyzer.ancestry.reference_data import AIMDatabase
+from pydna_analyzer.core.data_loader import DNADataset
 
 
 class AncestryAnalyzer:

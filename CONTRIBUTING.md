@@ -1,11 +1,11 @@
-# Contributing to GenomeInsight
+# Contributing to PyDNA Analyzer
 
-Thank you for your interest in contributing to GenomeInsight! 🧬
+Thank you for your interest in contributing to PyDNA Analyzer! 🧬
 
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/genomeinsight.git`
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/pydna-analyzer.git`
 3. Install with development dependencies: `uv sync --all-extras`
 4. Create a feature branch: `git checkout -b feature/your-feature-name`
 
@@ -15,7 +15,7 @@ Thank you for your interest in contributing to GenomeInsight! 🧬
 
 ```bash
 uv run pytest
-uv run pytest --cov=genomeinsight  # With coverage
+uv run pytest --cov=pydna_analyzer  # With coverage
 ```
 
 ### Code Quality
@@ -23,7 +23,7 @@ uv run pytest --cov=genomeinsight  # With coverage
 ```bash
 uv run ruff check .      # Linting
 uv run ruff format .     # Formatting
-uv run mypy genomeinsight  # Type checking
+uv run mypy pydna_analyzer  # Type checking
 ```
 
 ### Pre-commit Hooks (Optional)

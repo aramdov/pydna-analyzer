@@ -1,11 +1,11 @@
-"""Tests for the GenomeInsight REST API."""
+"""Tests for the PyDNA Analyzer REST API."""
 
 from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
 
-from genomeinsight.api import create_app
+from pydna_analyzer.api import create_app
 
 
 @pytest.fixture
@@ -212,7 +212,7 @@ class TestServeCLI:
     def test_serve_command_exists(self):
         from typer.testing import CliRunner
 
-        from genomeinsight.cli import app as cli_app
+        from pydna_analyzer.cli import app as cli_app
 
         runner = CliRunner()
         result = runner.invoke(cli_app, ["serve", "--help"])

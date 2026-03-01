@@ -1,11 +1,11 @@
-"""Integration tests for the GenomeInsight CLI."""
+"""Integration tests for the PyDNA Analyzer CLI."""
 
 import json
 
 import pytest
 from typer.testing import CliRunner
 
-from genomeinsight.cli import app
+from pydna_analyzer.cli import app
 
 runner = CliRunner()
 
@@ -50,7 +50,7 @@ class TestAnalyzeCommand:
         assert output_file.exists()
         html_content = output_file.read_text()
         assert "<html" in html_content
-        assert "GenomeInsight" in html_content
+        assert "PyDNA Analyzer" in html_content
 
     def test_analyze_nonexistent_file(self):
         """Analyze with a nonexistent file should exit with non-zero code."""

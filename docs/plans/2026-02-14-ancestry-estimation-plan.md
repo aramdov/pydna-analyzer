@@ -4,7 +4,7 @@
 
 **Goal:** Add sub-continental ancestry composition estimation using likelihood-based admixture with bundled 1000 Genomes reference data.
 
-**Architecture:** Three-file module (`reference_data.py`, `estimator.py`, `__init__.py`) under `genomeinsight/ancestry/` with bundled AIM frequency JSON. MLE optimization via scipy. CLI command `genomeinsight ancestry <file>`. Follows existing dataclass + Rich + pytest patterns exactly.
+**Architecture:** Three-file module (`reference_data.py`, `estimator.py`, `__init__.py`) under `pydna_analyzer/ancestry/` with bundled AIM frequency JSON. MLE optimization via scipy. CLI command `pydna_analyzer ancestry <file>`. Follows existing dataclass + Rich + pytest patterns exactly.
 
 **Tech Stack:** Python 3.10+, numpy, scipy.optimize, dataclasses, Rich, Typer, pytest
 
@@ -44,8 +44,8 @@ git commit -m "chore: update ancestry deps to scipy only"
 ### Task 2: Create Reference Data Module and AIM Frequencies
 
 **Files:**
-- Create: `genomeinsight/ancestry/data/aim_frequencies.json`
-- Create: `genomeinsight/ancestry/reference_data.py`
+- Create: `pydna_analyzer/ancestry/data/aim_frequencies.json`
+- Create: `pydna_analyzer/ancestry/reference_data.py`
 - Test: `tests/test_ancestry.py`
 
 **Step 1: Write the failing test for AIMDatabase loading**
@@ -57,7 +57,7 @@ Create `tests/test_ancestry.py`:
 
 import pytest
 
-from genomeinsight.ancestry.reference_data import AIMDatabase
+from pydna_analyzer.ancestry.reference_data import AIMDatabase
 
 
 class TestAIMDatabase:
@@ -109,11 +109,11 @@ class TestAIMDatabase:
 **Step 2: Run tests to verify they fail**
 
 Run: `uv run pytest tests/test_ancestry.py -v`
-Expected: FAIL — `ModuleNotFoundError: No module named 'genomeinsight.ancestry.reference_data'`
+Expected: FAIL — `ModuleNotFoundError: No module named 'pydna_analyzer.ancestry.reference_data'`
 
 **Step 3: Create the AIM frequencies JSON**
 
-Create `genomeinsight/ancestry/data/aim_frequencies.json` with curated AIM data.
+Create `pydna_analyzer/ancestry/data/aim_frequencies.json` with curated AIM data.
 
 This is the largest single piece — a JSON file with ~100-200 well-known ancestry-informative markers sourced from published literature (1000 Genomes Phase 3 allele frequencies). Key AIMs to include:
 
@@ -209,7 +209,7 @@ Expected: 8 PASSED
 **Step 6: Commit**
 
 ```bash
-git add genomeinsight/ancestry/ tests/test_ancestry.py
+git add pydna_analyzer/ancestry/ tests/test_ancestry.py
 git commit -m "feat(ancestry): add AIM reference database with population frequencies"
 ```
 
@@ -218,7 +218,7 @@ git commit -m "feat(ancestry): add AIM reference database with population freque
 ### Task 3: Implement Genotype Likelihood Math
 
 **Files:**
-- Create: `genomeinsight/ancestry/estimator.py`
+- Create: `pydna_analyzer/ancestry/estimator.py`
 - Test: `tests/test_ancestry.py` (add to)
 
 **Step 1: Write failing tests for genotype likelihood**
@@ -226,7 +226,7 @@ git commit -m "feat(ancestry): add AIM reference database with population freque
 Add to `tests/test_ancestry.py`:
 
 ```python
-from genomeinsight.ancestry.estimator import AncestryEstimator
+from pydna_analyzer.ancestry.estimator import AncestryEstimator
 
 
 class TestGenotypeLikelihood:
@@ -292,7 +292,7 @@ Expected: FAIL — `ImportError`
 
 **Step 3: Implement estimator with genotype likelihood**
 
-Create `genomeinsight/ancestry/estimator.py`:
+Create `pydna_analyzer/ancestry/estimator.py`:
 
 ```python
 """Ancestry estimation via maximum likelihood admixture analysis."""
@@ -377,7 +377,7 @@ Expected: 7 PASSED
 **Step 5: Commit**
 
 ```bash
-git add genomeinsight/ancestry/estimator.py tests/test_ancestry.py
+git add pydna_analyzer/ancestry/estimator.py tests/test_ancestry.py
 git commit -m "feat(ancestry): add genotype likelihood calculation with HWE"
 ```
 
@@ -386,7 +386,7 @@ git commit -m "feat(ancestry): add genotype likelihood calculation with HWE"
 ### Task 4: Implement MLE Optimization
 
 **Files:**
-- Modify: `genomeinsight/ancestry/estimator.py`
+- Modify: `pydna_analyzer/ancestry/estimator.py`
 - Test: `tests/test_ancestry.py` (add to)
 
 **Step 1: Write failing tests for proportion optimization**
@@ -460,7 +460,7 @@ Expected: FAIL — `AttributeError: 'AncestryEstimator' object has no attribute 
 
 **Step 3: Implement MLE optimization**
 
-Add to `genomeinsight/ancestry/estimator.py`:
+Add to `pydna_analyzer/ancestry/estimator.py`:
 
 ```python
 from scipy.optimize import minimize
@@ -554,7 +554,7 @@ Expected: 5 PASSED
 **Step 5: Commit**
 
 ```bash
-git add genomeinsight/ancestry/estimator.py tests/test_ancestry.py
+git add pydna_analyzer/ancestry/estimator.py tests/test_ancestry.py
 git commit -m "feat(ancestry): add MLE proportion optimization with SLSQP"
 ```
 
@@ -563,7 +563,7 @@ git commit -m "feat(ancestry): add MLE proportion optimization with SLSQP"
 ### Task 5: Implement Bootstrap Confidence Intervals
 
 **Files:**
-- Modify: `genomeinsight/ancestry/estimator.py`
+- Modify: `pydna_analyzer/ancestry/estimator.py`
 - Test: `tests/test_ancestry.py` (add to)
 
 **Step 1: Write failing tests for bootstrap CI**
@@ -657,7 +657,7 @@ Expected: 3 PASSED
 **Step 5: Commit**
 
 ```bash
-git add genomeinsight/ancestry/estimator.py tests/test_ancestry.py
+git add pydna_analyzer/ancestry/estimator.py tests/test_ancestry.py
 git commit -m "feat(ancestry): add bootstrap confidence intervals"
 ```
 
@@ -666,8 +666,8 @@ git commit -m "feat(ancestry): add bootstrap confidence intervals"
 ### Task 6: Implement Full AncestryAnalyzer (End-to-End Estimation)
 
 **Files:**
-- Modify: `genomeinsight/ancestry/__init__.py`
-- Modify: `genomeinsight/ancestry/estimator.py`
+- Modify: `pydna_analyzer/ancestry/__init__.py`
+- Modify: `pydna_analyzer/ancestry/estimator.py`
 - Test: `tests/test_ancestry.py` (add to)
 - Modify: `tests/conftest.py` (add ancestry fixtures)
 
@@ -684,7 +684,7 @@ ANCESTRY_HEADER = "#AncestryDNA raw data download\n#rsid\tchromosome\tposition\t
 @pytest.fixture
 def ancestry_dataset_factory(tmp_path):
     """Factory fixture: creates a DNADataset from a dict of rsid -> genotype."""
-    from genomeinsight.core.data_loader import load_dna_data
+    from pydna_analyzer.core.data_loader import load_dna_data
 
     def _make(genotypes: dict[str, str]) -> "DNADataset":
         lines = [ANCESTRY_HEADER]
@@ -704,7 +704,7 @@ def ancestry_dataset_factory(tmp_path):
 Add to `tests/test_ancestry.py`:
 
 ```python
-from genomeinsight.ancestry import AncestryAnalyzer, AncestryResult, PopulationResult
+from pydna_analyzer.ancestry import AncestryAnalyzer, AncestryResult, PopulationResult
 
 
 class TestAncestryAnalyzer:
@@ -801,11 +801,11 @@ class TestAncestryAnalyzer:
 **Step 3: Run tests to verify they fail**
 
 Run: `uv run pytest tests/test_ancestry.py::TestAncestryAnalyzer -v`
-Expected: FAIL — `ImportError: cannot import name 'AncestryAnalyzer' from 'genomeinsight.ancestry'`
+Expected: FAIL — `ImportError: cannot import name 'AncestryAnalyzer' from 'pydna_analyzer.ancestry'`
 
 **Step 4: Implement the full estimate() method on AncestryEstimator**
 
-Add to `genomeinsight/ancestry/estimator.py`:
+Add to `pydna_analyzer/ancestry/estimator.py`:
 
 ```python
     def estimate(
@@ -947,7 +947,7 @@ Add to `genomeinsight/ancestry/estimator.py`:
 
 **Step 5: Implement AncestryAnalyzer in __init__.py**
 
-Update `genomeinsight/ancestry/__init__.py`:
+Update `pydna_analyzer/ancestry/__init__.py`:
 
 ```python
 """Ancestry estimation module.
@@ -959,16 +959,16 @@ Pipeline:
 
 from __future__ import annotations
 
-from genomeinsight.ancestry.estimator import AncestryEstimator, AncestryResult, PopulationResult
-from genomeinsight.ancestry.reference_data import AIMDatabase
-from genomeinsight.core.data_loader import DNADataset
+from pydna_analyzer.ancestry.estimator import AncestryEstimator, AncestryResult, PopulationResult
+from pydna_analyzer.ancestry.reference_data import AIMDatabase
+from pydna_analyzer.core.data_loader import DNADataset
 
 
 class AncestryAnalyzer:
     """High-level ancestry estimation interface.
 
     Usage:
-        >>> from genomeinsight.ancestry import AncestryAnalyzer
+        >>> from pydna_analyzer.ancestry import AncestryAnalyzer
         >>> analyzer = AncestryAnalyzer()
         >>> result = analyzer.analyze(dataset)
         >>> for pop in result.populations[:5]:
@@ -1022,7 +1022,7 @@ Expected: All tests PASS (8 reference + 7 likelihood + 5 optimization + 3 bootst
 **Step 7: Commit**
 
 ```bash
-git add genomeinsight/ancestry/ tests/test_ancestry.py tests/conftest.py
+git add pydna_analyzer/ancestry/ tests/test_ancestry.py tests/conftest.py
 git commit -m "feat(ancestry): complete ancestry estimation pipeline with MLE and bootstrap CI"
 ```
 
@@ -1031,7 +1031,7 @@ git commit -m "feat(ancestry): complete ancestry estimation pipeline with MLE an
 ### Task 7: Add CLI Command
 
 **Files:**
-- Modify: `genomeinsight/cli.py`
+- Modify: `pydna_analyzer/cli.py`
 - Test: `tests/test_ancestry.py` (add CLI tests)
 
 **Step 1: Write failing CLI tests**
@@ -1040,7 +1040,7 @@ Add to `tests/test_ancestry.py`:
 
 ```python
 from typer.testing import CliRunner
-from genomeinsight.cli import app
+from pydna_analyzer.cli import app
 
 runner = CliRunner()
 
@@ -1076,7 +1076,7 @@ Expected: FAIL — `No such command 'ancestry'`
 
 **Step 3: Add the ancestry CLI command**
 
-Add to `genomeinsight/cli.py` (after the `pgx` command):
+Add to `pydna_analyzer/cli.py` (after the `pgx` command):
 
 ```python
 @app.command()
@@ -1106,11 +1106,11 @@ def ancestry(
     to estimate population proportions with confidence intervals.
 
     Examples:
-        genomeinsight ancestry AncestryDNA.txt
-        genomeinsight ancestry data.txt -o ancestry.json
-        genomeinsight ancestry data.txt --bootstrap 200
+        pydna_analyzer ancestry AncestryDNA.txt
+        pydna_analyzer ancestry data.txt -o ancestry.json
+        pydna_analyzer ancestry data.txt --bootstrap 200
     """
-    from genomeinsight.ancestry import AncestryAnalyzer
+    from pydna_analyzer.ancestry import AncestryAnalyzer
 
     # Load data
     with Progress(
@@ -1180,7 +1180,7 @@ def ancestry(
 
 def _print_ancestry_results(result):
     """Print ancestry estimation results with Rich tables."""
-    from genomeinsight.ancestry import AncestryResult
+    from pydna_analyzer.ancestry import AncestryResult
 
     console.print()
     console.print(
@@ -1249,7 +1249,7 @@ Expected: All 129 + ~31 new = ~160 tests PASS
 **Step 6: Commit**
 
 ```bash
-git add genomeinsight/cli.py tests/test_ancestry.py
+git add pydna_analyzer/cli.py tests/test_ancestry.py
 git commit -m "feat(ancestry): add ancestry CLI command with Rich table output"
 ```
 
@@ -1258,15 +1258,15 @@ git commit -m "feat(ancestry): add ancestry CLI command with Rich table output"
 ### Task 8: Wire Up Exports and Update Package
 
 **Files:**
-- Modify: `genomeinsight/__init__.py`
-- Modify: `genomeinsight/cli.py` (add to CLAUDE.md commands)
+- Modify: `pydna_analyzer/__init__.py`
+- Modify: `pydna_analyzer/cli.py` (add to CLAUDE.md commands)
 
 **Step 1: Add ancestry exports to package __init__**
 
-Add to `genomeinsight/__init__.py`:
+Add to `pydna_analyzer/__init__.py`:
 
 ```python
-from genomeinsight.ancestry import AncestryAnalyzer, AncestryResult
+from pydna_analyzer.ancestry import AncestryAnalyzer, AncestryResult
 
 # Add to __all__:
 __all__ = [
@@ -1284,7 +1284,7 @@ Expected: All tests pass, no lint errors
 **Step 3: Commit**
 
 ```bash
-git add genomeinsight/__init__.py
+git add pydna_analyzer/__init__.py
 git commit -m "feat(ancestry): export AncestryAnalyzer from package root"
 ```
 
@@ -1298,14 +1298,14 @@ git commit -m "feat(ancestry): export AncestryAnalyzer from package root"
 
 **Step 1: Update CLAUDE.md**
 
-- Add `uv run genomeinsight ancestry <file>` to Commands section
+- Add `uv run pydna_analyzer ancestry <file>` to Commands section
 - Add ancestry module to Module Map
 - Update test count
 
 **Step 2: Update README.md**
 
 - Check the `[x] Ancestry composition estimation` roadmap item
-- Add brief usage example for `genomeinsight ancestry`
+- Add brief usage example for `pydna_analyzer ancestry`
 
 **Step 3: Commit**
 

@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - CPIC-based activity score computation (0, 0.25, 0.5, 1.0, 1.5)
   - Metabolizer phenotype prediction (PM/IM/NM/RM/UM + VKORC1 sensitivity + COMT activity)
   - Drug recommendation database (~20 entries) covering clopidogrel, warfarin, codeine, tamoxifen, azathioprine, omeprazole, celecoxib, opioids
-  - `genomeinsight pgx` CLI command with Rich-formatted gene summary, drug recommendations, and JSON export
+  - `pydna-analyzer pgx` CLI command with Rich-formatted gene summary, drug recommendations, and JSON export
   - Self-contained module — removed unused `pypgx` dependency
 - Comprehensive test suite expanded to 129 tests (33 new PGx tests)
 

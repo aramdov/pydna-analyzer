@@ -2,7 +2,7 @@
 
 import pytest
 
-from genomeinsight.pharmacogenomics import (
+from pydna_analyzer.pharmacogenomics import (
     DRUG_RECOMMENDATIONS,
     GENE_DEFINITIONS,
     CPICLevel,
@@ -206,7 +206,7 @@ class TestDrugRecommendations:
             "rs3892097\t22\t42524947\tA\tA\n"
             "rs1065852\t22\t42522613\tG\tG\n"
         )
-        from genomeinsight.core.data_loader import load_dna_data
+        from pydna_analyzer.core.data_loader import load_dna_data
 
         filepath = tmp_path / "cyp2d6_pm.txt"
         filepath.write_text(content)

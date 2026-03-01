@@ -1,5 +1,5 @@
 <h1 align="center">
-  🧬 GenomeInsight
+  🧬 pydna-analyzer
 </h1>
 
 <p align="center">
@@ -9,12 +9,12 @@
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
-  <a href="https://github.com/genomeinsight/genomeinsight/issues"><img src="https://img.shields.io/github/issues/genomeinsight/genomeinsight" alt="Issues"></a>
+  <a href="https://github.com/aramdov/pydna-analyzer/issues"><img src="https://img.shields.io/github/issues/aramdov/pydna-analyzer" alt="Issues"></a>
 </p>
 
 ---
 
-GenomeInsight analyzes your raw DNA data from services like **AncestryDNA**, **23andMe**, and **MyHeritage** to provide insights into clinical variants, pharmacogenomics, and health-related genetic markers.
+PyDNA Analyzer analyzes your raw DNA data from services like **AncestryDNA**, **23andMe**, and **MyHeritage** to provide insights into clinical variants, pharmacogenomics, and health-related genetic markers.
 
 > **🔒 Privacy First**: All analysis runs 100% locally on your machine. Your genetic data never leaves your computer.
 
@@ -42,8 +42,8 @@ GenomeInsight analyzes your raw DNA data from services like **AncestryDNA**, **2
 
 ```bash
 # Clone the repository
-git clone https://github.com/genomeinsight/genomeinsight.git
-cd genomeinsight
+git clone https://github.com/aramdov/pydna-analyzer.git
+cd pydna-analyzer
 
 # Create environment and install
 uv sync
@@ -56,8 +56,8 @@ uv sync --all-extras
 
 ```bash
 # Clone the repository
-git clone https://github.com/genomeinsight/genomeinsight.git
-cd genomeinsight
+git clone https://github.com/aramdov/pydna-analyzer.git
+cd pydna-analyzer
 
 # Create virtual environment
 python -m venv .venv
@@ -71,37 +71,37 @@ pip install -e ".[dev]"
 
 ```bash
 # Analyze your DNA data
-genomeinsight analyze your_dna_file.txt
+pydna-analyzer analyze your_dna_file.txt
 
 # Generate an HTML report
-genomeinsight analyze your_dna_file.txt --html -o report.html
+pydna-analyzer analyze your_dna_file.txt --html -o report.html
 
 # Export to JSON
-genomeinsight analyze your_dna_file.txt --json -o results.json
+pydna-analyzer analyze your_dna_file.txt --json -o results.json
 
 # Estimate ancestry composition
-genomeinsight ancestry your_dna_file.txt
+pydna-analyzer ancestry your_dna_file.txt
 
 # Calculate Polygenic Risk Scores
-genomeinsight prs your_dna_file.txt --weights cardiovascular_prs.csv
+pydna-analyzer prs your_dna_file.txt --weights cardiovascular_prs.csv
 
 # Generate AI-powered report (requires API key)
-genomeinsight analyze your_dna_file.txt --ai --ai-style consumer
+pydna-analyzer analyze your_dna_file.txt --ai --ai-style consumer
 
 # View file information
-genomeinsight info your_dna_file.txt
+pydna-analyzer info your_dna_file.txt
 
 # List all clinical variants in database
-genomeinsight variants
+pydna-analyzer variants
 ```
 
 ### REST API
 
 ```bash
 # Start the API server (requires: uv sync --extra api)
-genomeinsight serve                    # http://localhost:8000
-genomeinsight serve --port 9000        # Custom port
-genomeinsight serve --reload           # Dev mode
+pydna-analyzer serve                    # http://localhost:8000
+pydna-analyzer serve --port 9000        # Custom port
+pydna-analyzer serve --reload           # Dev mode
 
 # Example requests
 curl http://localhost:8000/health
@@ -117,7 +117,7 @@ open http://localhost:8000/docs
 ### Python API
 
 ```python
-from genomeinsight import load_dna_data, ClinicalAnalyzer
+from pydna_analyzer import load_dna_data, ClinicalAnalyzer
 
 # Load your data
 data = load_dna_data("your_dna_file.txt")
@@ -157,13 +157,13 @@ Generate natural language reports using OpenAI or Anthropic:
 export OPENAI_API_KEY=sk-...  # or ANTHROPIC_API_KEY
 
 # Generate consumer-friendly report
-genomeinsight analyze your_dna.txt --ai --ai-style consumer
+pydna-analyzer analyze your_dna.txt --ai --ai-style consumer
 
 # Generate technical report for researchers
-genomeinsight analyze your_dna.txt --ai --ai-style technical
+pydna-analyzer analyze your_dna.txt --ai --ai-style technical
 
 # Save report to file
-genomeinsight analyze your_dna.txt --ai --ai-output report.md
+pydna-analyzer analyze your_dna.txt --ai --ai-output report.md
 ```
 
 | Style | Audience | Features |
@@ -174,7 +174,7 @@ genomeinsight analyze your_dna.txt --ai --ai-output report.md
 
 ## 🔬 Gene Interactions
 
-GenomeInsight detects known gene-gene interactions:
+PyDNA Analyzer detects known gene-gene interactions:
 
 - **MTHFR Compound Heterozygosity**: C677T + A1298C significantly reduces enzyme function
 - **APOE Isoforms**: Combines rs429358 + rs7412 for accurate ε2/ε3/ε4 calling
@@ -183,7 +183,7 @@ GenomeInsight detects known gene-gene interactions:
 ## 📁 Project Structure
 
 ```
-genomeinsight/
+pydna_analyzer/
 ├── core/              # Data loaders and utilities
 ├── clinical/          # Clinical variant analysis
 ├── pharmacogenomics/  # Drug metabolism analysis
@@ -213,7 +213,7 @@ uv run ruff check .
 uv run ruff format .
 
 # Type checking
-uv run mypy genomeinsight
+uv run mypy pydna_analyzer
 ```
 
 ## 🗺️ Roadmap

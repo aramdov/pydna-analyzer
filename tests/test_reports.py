@@ -4,11 +4,11 @@ import json
 
 import pytest
 
-from genomeinsight.clinical.analyzer import AnalysisResult, VariantResult
-from genomeinsight.clinical.apoe import APOEAllele, APOEResult
-from genomeinsight.clinical.variants import Category, EvidenceLevel, RiskLevel
-from genomeinsight.reports.html_report import generate_html_report
-from genomeinsight.reports.json_export import export_to_json
+from pydna_analyzer.clinical.analyzer import AnalysisResult, VariantResult
+from pydna_analyzer.clinical.apoe import APOEAllele, APOEResult
+from pydna_analyzer.clinical.variants import Category, EvidenceLevel, RiskLevel
+from pydna_analyzer.reports.html_report import generate_html_report
+from pydna_analyzer.reports.json_export import export_to_json
 
 
 @pytest.fixture
@@ -186,7 +186,7 @@ class TestGenerateHtmlReport:
         generate_html_report(sample_analysis_result, output)
         html = output.read_text()
 
-        assert "<title>GenomeInsight Report</title>" in html
+        assert "<title>PyDNA Analyzer Report</title>" in html
         assert "Important Disclaimer" in html
         # Summary stat cards
         assert "SNPs Analyzed" in html
@@ -224,7 +224,7 @@ class TestGenerateHtmlReport:
         html = output.read_text()
 
         assert output.exists()
-        assert "<title>GenomeInsight Report</title>" in html
+        assert "<title>PyDNA Analyzer Report</title>" in html
         # The "no high priority findings" placeholder should appear
         assert "No high priority findings" in html
 
@@ -277,14 +277,14 @@ class TestGenerateHtmlReport:
         assert "risk-normal" in html
 
     def test_version_in_footer(self, tmp_path, sample_analysis_result):
-        """Footer should contain the GenomeInsight version."""
+        """Footer should contain the PyDNA Analyzer version."""
         output = tmp_path / "report.html"
         generate_html_report(sample_analysis_result, output)
         html = output.read_text()
 
-        from genomeinsight import __version__
+        from pydna_analyzer import __version__
 
-        assert f"GenomeInsight v{__version__}" in html
+        assert f"PyDNA Analyzer v{__version__}" in html
 
 
 # =============================================================================
