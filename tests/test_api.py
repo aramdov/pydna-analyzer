@@ -138,6 +138,49 @@ class TestPgxEndpoint:
         assert response.status_code == 422
 
 
+@pytest.fixture
+def sample_weights_file(tmp_path):
+    """Create a sample PRS weights CSV file."""
+    content = "rsid,effect_allele,weight\nrs429358,C,0.15\nrs7412,T,0.10\nrs1801133,T,0.05\n"
+    filepath = tmp_path / "weights.csv"
+    filepath.write_text(content)
+    return filepath
+
+
+class TestPrsEndpoint:
+    def test_prs_with_paths(self, client, sample_ancestrydna_file, sample_weights_file):
+        response = client.post(
+            "/prs",
+            data={
+                "file_path": str(sample_ancestrydna_file),
+                "weights_path": str(sample_weights_file),
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert "raw_score" in data
+        assert "snps_used" in data
+
+    def test_prs_missing_weights_returns_422(self, client, sample_ancestrydna_file):
+        response = client.post(
+            "/prs",
+            data={"file_path": str(sample_ancestrydna_file)},
+        )
+        assert response.status_code == 422
+
+    def test_prs_with_name(self, client, sample_ancestrydna_file, sample_weights_file):
+        response = client.post(
+            "/prs",
+            data={
+                "file_path": str(sample_ancestrydna_file),
+                "weights_path": str(sample_weights_file),
+            },
+            params={"name": "Test Score"},
+        )
+        data = response.json()
+        assert data["score_name"] == "Test Score"
+
+
 class TestAncestryEndpoint:
     def test_ancestry_returns_results(self, client, tmp_path, sample_ancestrydna_content):
         filepath = tmp_path / "ancestry.txt"

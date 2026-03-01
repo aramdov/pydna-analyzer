@@ -45,6 +45,33 @@ async def resolve_file_input(
     )
 
 
+async def resolve_weights_input(
+    weights_file: UploadFile | None = None,
+    weights_path: str | None = Form(None),
+) -> ResolvedFile:
+    """Resolve weights file input from either an upload or a local path.
+
+    Used as a FastAPI dependency by the PRS endpoint.
+    """
+    if weights_file is not None:
+        suffix = Path(weights_file.filename).suffix if weights_file.filename else ".csv"
+        content = await weights_file.read()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(content)
+        return ResolvedFile(path=Path(tmp.name), is_temp=True)
+
+    if weights_path is not None:
+        p = Path(weights_path)
+        if not p.exists():
+            raise HTTPException(status_code=404, detail=f"File not found: {weights_path}")
+        return ResolvedFile(path=p, is_temp=False)
+
+    raise HTTPException(
+        status_code=422,
+        detail="Provide either a weights_file upload or a weights_path form field.",
+    )
+
+
 def cleanup_temp(resolved: ResolvedFile) -> None:
     """Remove the temp file if it was created by resolve_file_input."""
     if resolved.is_temp and resolved.path.exists():

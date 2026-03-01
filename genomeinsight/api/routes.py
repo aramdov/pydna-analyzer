@@ -9,7 +9,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
 
 from genomeinsight import __version__
-from genomeinsight.api.schemas import ResolvedFile, cleanup_temp, resolve_file_input
+from genomeinsight.api.schemas import (
+    ResolvedFile,
+    cleanup_temp,
+    resolve_file_input,
+    resolve_weights_input,
+)
 
 router = APIRouter()
 
@@ -203,6 +208,40 @@ async def pgx(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     finally:
         cleanup_temp(resolved)
+
+
+@router.post("/prs")
+async def prs(
+    resolved: ResolvedFile = Depends(resolve_file_input),  # noqa: B008
+    weights_resolved: ResolvedFile = Depends(resolve_weights_input),  # noqa: B008
+    name: str | None = None,
+):
+    """Calculate a Polygenic Risk Score from a DNA file and weights CSV."""
+    from genomeinsight.core.data_loader import load_dna_data
+    from genomeinsight.polygenic import PRSCalculator
+
+    try:
+        dataset = load_dna_data(resolved.path)
+        calculator = PRSCalculator()
+        result = calculator.calculate_from_file(dataset, weights_resolved.path, score_name=name)
+        return {
+            "score_name": result.score_name,
+            "raw_score": result.raw_score,
+            "normalized_score": result.normalized_score,
+            "percentile": result.percentile,
+            "risk_category": result.risk_category,
+            "snps_used": result.snps_used,
+            "snps_available": result.snps_available,
+            "coverage": result.coverage,
+            "interpretation": result.interpretation,
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    finally:
+        cleanup_temp(resolved)
+        cleanup_temp(weights_resolved)
 
 
 @router.post("/ancestry")
