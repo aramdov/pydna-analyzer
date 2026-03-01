@@ -249,3 +249,104 @@ def ancestry_dataset_factory(tmp_path):
         return load_dna_data(filepath)
 
     return _make
+
+
+# ===== VCF loader fixtures =====
+
+VCF_HEADER = (
+    "##fileformat=VCFv4.3\n"
+    "##INFO=<ID=DP,Number=1,Type=Integer>\n"
+    '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">\n'
+)
+
+
+@pytest.fixture
+def sample_vcf_content():
+    """Simple valid VCF: single sample, biallelic, all PASS."""
+    return (
+        VCF_HEADER
+        + "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tSAMPLE1\n"
+        "19\t45411941\trs429358\tT\tC\t50\tPASS\t.\tGT\t0/1\n"
+        "19\t45412079\trs7412\tC\tT\t50\tPASS\t.\tGT\t0/0\n"
+        "1\t11856378\trs1801133\tC\tT\t50\tPASS\t.\tGT\t1/1\n"
+        "1\t11854476\trs1801131\tA\tC\t50\tPASS\t.\tGT\t0/1\n"
+        "6\t26091179\t.\tC\tG\t50\tPASS\t.\tGT\t0/0\n"
+    )
+
+
+@pytest.fixture
+def sample_vcf_file(tmp_path, sample_vcf_content):
+    """Write sample VCF to a temp file."""
+    fp = tmp_path / "test.vcf"
+    fp.write_text(sample_vcf_content)
+    return fp
+
+
+@pytest.fixture
+def multi_sample_vcf_content():
+    """VCF with 3 samples."""
+    return (
+        VCF_HEADER
+        + "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tNA12878\tHG00096\tHG00097\n"
+        "19\t45411941\trs429358\tT\tC\t50\tPASS\t.\tGT\t0/1\t1/1\t0/0\n"
+        "1\t11856378\trs1801133\tC\tT\t50\tPASS\t.\tGT\t0/0\t0/1\t1/1\n"
+    )
+
+
+@pytest.fixture
+def multi_allelic_vcf_content():
+    """VCF with multi-allelic sites (2-3 ALT alleles)."""
+    return (
+        VCF_HEADER
+        + "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tSAMPLE1\n"
+        "1\t100\trs111\tA\tG,T\t50\tPASS\t.\tGT\t1/2\n"
+        "1\t200\trs222\tA\tG,T,C\t50\tPASS\t.\tGT\t0/3\n"
+        "1\t300\trs333\tA\tG\t50\tPASS\t.\tGT\t0/1\n"
+        "1\t400\trs444\tA\tG,T\t50\tPASS\t.\tGT\t0/0\n"
+    )
+
+
+@pytest.fixture
+def filtered_vcf_content():
+    """VCF with mix of PASS, ., and non-PASS filters."""
+    return (
+        VCF_HEADER
+        + "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tSAMPLE1\n"
+        "1\t100\trs100\tA\tG\t50\tPASS\t.\tGT\t0/1\n"
+        "1\t200\trs200\tC\tT\t10\tLowQual\t.\tGT\t0/1\n"
+        "1\t300\trs300\tG\tA\t50\t.\t.\tGT\t1/1\n"
+        "1\t400\trs400\tT\tC\t5\tLowQual;LowDP\t.\tGT\t0/1\n"
+    )
+
+
+@pytest.fixture
+def malformed_vcf_content_no_header():
+    """VCF missing ##fileformat header."""
+    return (
+        "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tSAMPLE1\n"
+        "1\t100\trs100\tA\tG\t50\tPASS\t.\tGT\t0/1\n"
+    )
+
+
+@pytest.fixture
+def malformed_vcf_content_no_chrom():
+    """VCF with ##fileformat but missing #CHROM line."""
+    return (
+        "##fileformat=VCFv4.3\n"
+        "1\t100\trs100\tA\tG\t50\tPASS\t.\tGT\t0/1\n"
+    )
+
+
+@pytest.fixture
+def malformed_vcf_content_bad_rows():
+    """VCF with valid headers but some broken data rows."""
+    return (
+        VCF_HEADER
+        + "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tSAMPLE1\n"
+        "1\t100\trs100\tA\tG\t50\tPASS\t.\tGT\t0/1\n"
+        "1\tnot_a_number\trs200\tA\tG\t50\tPASS\t.\tGT\t0/1\n"
+        "1\t300\n"
+        "1\t400\trs400\tA\tG\t50\tPASS\t.\tDP\t42\n"
+        "1\t500\trs500\tA\tG\t50\tPASS\t.\tGT\t0/9\n"
+        "1\t600\trs600\tC\tT\t50\tPASS\t.\tGT\t0/1\n"
+    )
