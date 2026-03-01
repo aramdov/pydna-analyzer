@@ -31,7 +31,8 @@ GenomeInsight analyzes your raw DNA data from services like **AncestryDNA**, **2
 | 🤖 **AI-Powered Reports** | Natural language reports via OpenAI or Anthropic |
 | 📊 **Interactive Reports** | Beautiful HTML reports with charts and tables |
 | 🌍 **Ancestry Estimation** | Sub-continental ancestry composition with confidence intervals |
-| ✅ **Comprehensive Tests** | 163 tests covering all modules |
+| 🌐 **REST API** | Local FastAPI server for AI agents, scripts, and integrations |
+| ✅ **Comprehensive Tests** | 188 tests covering all modules |
 
 ## 🚀 Quick Start
 
@@ -92,6 +93,25 @@ genomeinsight info your_dna_file.txt
 
 # List all clinical variants in database
 genomeinsight variants
+```
+
+### REST API
+
+```bash
+# Start the API server (requires: uv sync --extra api)
+genomeinsight serve                    # http://localhost:8000
+genomeinsight serve --port 9000        # Custom port
+genomeinsight serve --reload           # Dev mode
+
+# Example requests
+curl http://localhost:8000/health
+curl http://localhost:8000/variants
+curl -X POST http://localhost:8000/analyze -F "file_path=/path/to/dna.txt"
+curl -X POST http://localhost:8000/pgx -F "file=@AncestryDNA.txt"
+curl -X POST http://localhost:8000/ancestry -F "file=@data.txt"
+
+# API docs (auto-generated)
+open http://localhost:8000/docs
 ```
 
 ### Python API
@@ -202,7 +222,7 @@ uv run mypy genomeinsight
 - [x] Comprehensive test suite (61+ tests)
 - [x] AI-powered natural language reports (OpenAI & Anthropic)
 - [x] Ancestry composition estimation
-- [ ] REST API for integration
+- [x] REST API for integration
 - [ ] Web dashboard interface
 - [ ] VCF file support improvements
 

@@ -11,7 +11,7 @@ GenomeInsight is a privacy-first personal genomics toolkit that analyzes DNA dat
 ```bash
 # Install dependencies
 uv sync                    # Base dependencies
-uv sync --all-extras       # All optional features (ai, prs, pgx, ancestry, dev)
+uv sync --all-extras       # All optional features (ai, prs, pgx, ancestry, api, dev)
 
 # Run CLI
 uv run genomeinsight analyze <file>
@@ -24,6 +24,9 @@ uv run genomeinsight ancestry <file> -o ancestry.json    # JSON export
 uv run genomeinsight ancestry <file> --bootstrap 200     # More CI iterations
 uv run genomeinsight info <file>
 uv run genomeinsight variants
+uv run genomeinsight serve                             # Start API on localhost:8000
+uv run genomeinsight serve --port 9000                 # Custom port
+uv run genomeinsight serve --reload                    # Dev mode with auto-reload
 
 # Tests
 uv run pytest                                          # All tests
@@ -72,6 +75,10 @@ DNA File → DataLoader (auto-detect format) → DNADataset (pydantic) → Analy
   - `estimator.py` — AncestryEstimator: MLE admixture via scipy SLSQP, bootstrap CI, HWE likelihood
   - `data/aim_frequencies.json` — Curated allele frequencies from 1000 Genomes Phase 3
   - Pipeline: match AIMs → build likelihood matrix → optimize proportions → bootstrap CI → interpret
+- **`api/`** — REST API (FastAPI):
+  - `__init__.py` — App factory (`create_app()`) with CORS configuration
+  - `routes.py` — Endpoint definitions: /health, /info, /analyze, /pgx, /ancestry, /prs, /variants
+  - `schemas.py` — File input resolution (path or upload) via `ResolvedFile` dataclass
 - **`reports/`** — HTML (Jinja2 + Plotly) and JSON export
 
 ### Key Patterns
@@ -84,7 +91,7 @@ DNA File → DataLoader (auto-detect format) → DNADataset (pydantic) → Analy
 
 ### Test Structure
 
-Tests use class-based organization with pytest fixtures in `conftest.py` for sample DNA data. The `tmp_path` fixture handles temporary file creation. Markers: `slow`, `integration`. Current count: 163 tests (34 ancestry, 33 PGx, 22 AI, 8 APOE, 13 CLI, 7 clinical analyzer, 13 data loader, 9 PRS, 21 reports, 3 PGx database integrity).
+Tests use class-based organization with pytest fixtures in `conftest.py` for sample DNA data. The `tmp_path` fixture handles temporary file creation. Markers: `slow`, `integration`. Current count: 188 tests (25 API, 34 ancestry, 33 PGx, 22 AI, 8 APOE, 13 CLI, 7 clinical analyzer, 13 data loader, 9 PRS, 21 reports, 3 PGx database integrity).
 
 ## Code Style
 
