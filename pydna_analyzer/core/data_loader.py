@@ -233,74 +233,195 @@ class MyHeritageLoader(BaseLoader):
 
 class VCFLoader(BaseLoader):
     """Loader for VCF (Variant Call Format) files."""
-    
+
+    def __init__(
+        self,
+        sample: str | int | None = None,
+        include_filtered: bool = False,
+    ) -> None:
+        self.sample = sample
+        self.include_filtered = include_filtered
+        self.warnings: list[str] = []
+
     def detect(self, filepath: Path) -> bool:
         """Detect VCF format."""
         try:
-            opener = gzip.open if str(filepath).endswith('.gz') else open
-            with opener(filepath, 'rt') as f:
+            opener = gzip.open if str(filepath).endswith(".gz") else open
+            with opener(filepath, "rt") as f:
                 for line in f:
-                    if line.startswith('##fileformat=VCF'):
+                    if line.startswith("##fileformat=VCF"):
                         return True
-                    if not line.startswith('#'):
+                    if not line.startswith("#"):
                         break
         except Exception:
             pass
         return False
-    
+
     def load(self, filepath: Path) -> pd.DataFrame:
-        """Load VCF format file."""
-        opener = gzip.open if str(filepath).endswith('.gz') else open
-        
-        rows = []
-        with opener(filepath, 'rt') as f:
+        """Load VCF format file.
+
+        Raises:
+            ValueError: If the file is missing a ##fileformat=VCF header or #CHROM line.
+        """
+        self.warnings = []
+        opener = gzip.open if str(filepath).endswith(".gz") else open
+
+        has_fileformat = False
+        header_cols: list[str] = []
+        sample_idx: int | None = None
+        rows: list[dict[str, object]] = []
+
+        with opener(filepath, "rt") as f:
             for line in f:
-                if line.startswith('##'):
+                if line.startswith("##"):
+                    if line.startswith("##fileformat=VCF"):
+                        has_fileformat = True
                     continue
-                if line.startswith('#CHROM'):
-                    headers = line.strip().split('\t')
-                    sample_col = headers[-1] if len(headers) > 9 else None
+                if line.startswith("#CHROM"):
+                    header_cols = line.strip().split("\t")
                     continue
-                
-                parts = line.strip().split('\t')
-                chrom = parts[0]
-                pos = int(parts[1])
-                rsid = parts[2] if parts[2] != '.' else f"{chrom}_{pos}"
-                ref = parts[3]
-                alt = parts[4].split(',')[0]  # Take first alt allele
-                
-                # Parse genotype from sample column
-                if len(parts) > 9:
-                    format_fields = parts[8].split(':')
-                    sample_fields = parts[9].split(':')
-                    gt_idx = format_fields.index('GT') if 'GT' in format_fields else 0
-                    gt = sample_fields[gt_idx]
-                    
-                    # Convert 0/1 format to alleles
-                    gt_parts = gt.replace('|', '/').split('/')
-                    alleles = []
-                    for g in gt_parts:
-                        if g == '0':
-                            alleles.append(ref)
-                        elif g == '1':
-                            alleles.append(alt)
-                        else:
-                            alleles.append('.')
-                    
-                    allele1, allele2 = alleles[0], alleles[1] if len(alleles) > 1 else alleles[0]
-                else:
-                    allele1, allele2 = ref, ref
-                
-                rows.append({
-                    'rsid': rsid,
-                    'chromosome': chrom,
-                    'position': pos,
-                    'allele1': allele1,
-                    'allele2': allele2,
-                    'genotype': allele1 + allele2,
-                })
-        
+
+                # Data row — but first check we saw both required headers
+                if not has_fileformat:
+                    raise ValueError(
+                        f"VCF file missing ##fileformat=VCF header: {filepath}"
+                    )
+                if not header_cols:
+                    raise ValueError(
+                        f"VCF file missing #CHROM header line: {filepath}"
+                    )
+
+                # Resolve sample index once on the first data row
+                if sample_idx is None:
+                    sample_idx = self._resolve_sample_index(header_cols)
+
+                parsed = self._parse_data_row(line, sample_idx)
+                if parsed is not None:
+                    rows.append(parsed)
+
+        # Files with headers but no data rows still need validation
+        if not has_fileformat:
+            raise ValueError(
+                f"VCF file missing ##fileformat=VCF header: {filepath}"
+            )
+        if not header_cols:
+            raise ValueError(
+                f"VCF file missing #CHROM header line: {filepath}"
+            )
+
         return pd.DataFrame(rows)
+
+    # ------------------------------------------------------------------
+    # Private helpers
+    # ------------------------------------------------------------------
+
+    def _resolve_sample_index(self, header_cols: list[str]) -> int:
+        """Return the column index for the chosen sample.
+
+        The first 9 VCF columns are fixed (CHROM..FORMAT).
+        Sample columns start at index 9.
+        """
+        sample_names = header_cols[9:]
+        if not sample_names:
+            raise ValueError("VCF file has no sample columns")
+
+        if self.sample is None:
+            return 9  # first sample
+
+        if isinstance(self.sample, int):
+            if self.sample < 0 or self.sample >= len(sample_names):
+                raise ValueError(
+                    f"Sample index {self.sample} out of range "
+                    f"(file has {len(sample_names)} samples)"
+                )
+            return 9 + self.sample
+
+        # sample is a name
+        if self.sample in sample_names:
+            return 9 + sample_names.index(self.sample)
+        raise ValueError(
+            f"Sample '{self.sample}' not found. "
+            f"Available samples: {sample_names}"
+        )
+
+    def _parse_data_row(
+        self,
+        line: str,
+        sample_idx: int,
+    ) -> dict[str, object] | None:
+        """Parse a single VCF data row, returning None if the row should be skipped."""
+        parts = line.strip().split("\t")
+
+        # Need at least up to the sample column
+        if len(parts) <= sample_idx:
+            self.warnings.append(f"Row too short, skipping: {line.strip()!r}")
+            return None
+
+        chrom = parts[0]
+
+        # Position must be a valid integer
+        try:
+            pos = int(parts[1])
+        except ValueError:
+            self.warnings.append(
+                f"Invalid position '{parts[1]}', skipping row"
+            )
+            return None
+
+        # FILTER check
+        filter_val = parts[6]
+        if not self.include_filtered and filter_val not in ("PASS", "."):
+            return None
+
+        # rsid
+        rsid = parts[2] if parts[2] != "." else f"{chrom}_{pos}"
+        ref = parts[3]
+        alts = parts[4].split(",")
+        alleles_list = [ref] + alts
+
+        # FORMAT / sample genotype
+        format_fields = parts[8].split(":")
+        if "GT" not in format_fields:
+            self.warnings.append(
+                f"No GT in FORMAT for row at {chrom}:{pos}, skipping"
+            )
+            return None
+        gt_field_idx = format_fields.index("GT")
+
+        sample_fields = parts[sample_idx].split(":")
+        gt = sample_fields[gt_field_idx]
+        gt_parts = gt.replace("|", "/").split("/")
+
+        resolved: list[str] = []
+        for g in gt_parts:
+            try:
+                idx = int(g)
+            except ValueError:
+                resolved.append("?")
+                self.warnings.append(
+                    f"Non-integer GT allele '{g}' at {chrom}:{pos}"
+                )
+                continue
+            if idx < 0 or idx >= len(alleles_list):
+                resolved.append("?")
+                self.warnings.append(
+                    f"GT index {idx} out of range at {chrom}:{pos} "
+                    f"(alleles: {alleles_list})"
+                )
+            else:
+                resolved.append(alleles_list[idx])
+
+        allele1 = resolved[0] if resolved else "?"
+        allele2 = resolved[1] if len(resolved) > 1 else allele1
+
+        return {
+            "rsid": rsid,
+            "chromosome": chrom,
+            "position": pos,
+            "allele1": allele1,
+            "allele2": allele2,
+            "genotype": allele1 + allele2,
+        }
 
 
 # Registry of loaders
