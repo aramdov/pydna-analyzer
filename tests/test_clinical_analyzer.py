@@ -71,6 +71,41 @@ class TestClinicalAnalyzer:
         categorized = sum(len(v) for v in result.by_category.values())
         assert categorized == len(result.variant_results)
 
+    def test_reverse_complement_strand_genotypes_are_recognized(self, tmp_path):
+        """Consumer reverse-strand calls should map to the curated genotype definitions."""
+        content = """#AncestryDNA raw data download
+#rsid\tchromosome\tposition\tallele1\tallele2
+rs1801133\t1\t11856378\tG\tA
+rs6025\t1\t169519049\tC\tC
+rs9923231\t16\t31107689\tC\tC
+rs1800497\t11\t113400106\tA\tG
+rs1800566\t16\t69745134\tA\tG
+rs1801260\t4\t56357331\tA\tA
+rs1048943\t15\t75011876\tT\tT
+"""
+        file_path = tmp_path / "reverse_strand_calls.txt"
+        file_path.write_text(content)
+
+        dataset = load_dna_data(file_path)
+        analyzer = ClinicalAnalyzer()
+        result = analyzer.analyze(dataset)
+        by_rsid = {variant.rsid: variant for variant in result.variant_results}
+
+        assert by_rsid["rs1801133"].matched_genotype in {"CT", "TC"}
+        assert by_rsid["rs1801133"].risk_level == RiskLevel.MODERATE
+        assert by_rsid["rs6025"].matched_genotype == "GG"
+        assert by_rsid["rs6025"].risk_level == RiskLevel.NORMAL
+        assert by_rsid["rs9923231"].matched_genotype == "GG"
+        assert by_rsid["rs9923231"].risk_level == RiskLevel.NORMAL
+        assert by_rsid["rs1800497"].matched_genotype in {"CT", "TC"}
+        assert by_rsid["rs1800497"].risk_level == RiskLevel.MODERATE
+        assert by_rsid["rs1800566"].matched_genotype in {"CT", "TC"}
+        assert by_rsid["rs1800566"].risk_level == RiskLevel.MODERATE
+        assert by_rsid["rs1801260"].matched_genotype == "TT"
+        assert by_rsid["rs1801260"].risk_level == RiskLevel.NORMAL
+        assert by_rsid["rs1048943"].matched_genotype == "AA"
+        assert by_rsid["rs1048943"].risk_level == RiskLevel.NORMAL
+
 
 class TestVariantResult:
     """Tests for individual variant results."""

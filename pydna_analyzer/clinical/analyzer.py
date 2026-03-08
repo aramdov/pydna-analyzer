@@ -194,20 +194,42 @@ class ClinicalAnalyzer:
     
     def _match_genotype(self, genotype: str, variant: ClinicalVariant):
         """Match a genotype to the variant's known genotypes."""
-        # Try exact match
-        if genotype in variant.genotypes:
-            return (genotype, variant.genotypes[genotype])
-        
-        # Try sorted/reversed
-        genotype_sorted = ''.join(sorted(genotype))
-        if genotype_sorted in variant.genotypes:
-            return (genotype_sorted, variant.genotypes[genotype_sorted])
-        
-        genotype_reversed = genotype[::-1]
-        if genotype_reversed in variant.genotypes:
-            return (genotype_reversed, variant.genotypes[genotype_reversed])
-        
+        for candidate in self._genotype_candidates(genotype):
+            if candidate in variant.genotypes:
+                return (candidate, variant.genotypes[candidate])
+
         return None
+
+    def _genotype_candidates(self, genotype: str) -> list[str]:
+        """Generate normalized genotype candidates, including reverse complements."""
+        candidates: list[str] = []
+        seen: set[str] = set()
+
+        def add(candidate: str) -> None:
+            if candidate and candidate not in seen:
+                seen.add(candidate)
+                candidates.append(candidate)
+
+        add(genotype)
+        add(genotype[::-1])
+        add("".join(sorted(genotype)))
+
+        complemented = self._reverse_complement_genotype(genotype)
+        if complemented is not None:
+            add(complemented)
+            add(complemented[::-1])
+            add("".join(sorted(complemented)))
+
+        return candidates
+
+    def _reverse_complement_genotype(self, genotype: str) -> Optional[str]:
+        """Return the reverse-complemented genotype for standard nucleotide calls."""
+        complement_map = {"A": "T", "T": "A", "C": "G", "G": "C"}
+
+        try:
+            return "".join(complement_map[allele] for allele in genotype)
+        except KeyError:
+            return None
     
     def _detect_interactions(self, results: list[VariantResult]) -> list[dict]:
         """Detect known gene-gene interactions in results."""
