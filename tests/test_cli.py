@@ -1,6 +1,7 @@
 """Integration tests for the PyDNA Analyzer CLI."""
 
 import json
+from types import SimpleNamespace
 
 import pytest
 from typer.testing import CliRunner
@@ -68,6 +69,48 @@ class TestAnalyzeCommand:
         assert result_quiet.exit_code == 0
         # Quiet mode output should be shorter than normal mode
         assert len(result_quiet.output) < len(result_normal.output)
+
+    def test_analyze_ai_model_is_forwarded(
+        self, sample_ancestrydna_file, monkeypatch, tmp_path
+    ):
+        """Analyze forwards --ai-model to the OpenAI client path."""
+        captured: dict[str, str | None] = {}
+
+        def fake_get_client(provider=None, api_key=None, model=None):
+            captured["model"] = model
+            captured["provider"] = None if provider is None else provider.value
+            return SimpleNamespace(provider=SimpleNamespace(value="openai"), model=model)
+
+        class FakeGenerator:
+            def __init__(self, client):
+                self.client = client
+
+            def generate(self, result, style):
+                return f"report for {style.value}"
+
+        monkeypatch.setattr("pydna_analyzer.ai.get_client", fake_get_client)
+        monkeypatch.setattr("pydna_analyzer.ai.AIReportGenerator", FakeGenerator)
+
+        output_file = tmp_path / "ai-report.md"
+        result = runner.invoke(
+            app,
+            [
+                "analyze",
+                str(sample_ancestrydna_file),
+                "--ai",
+                "--ai-provider",
+                "openai",
+                "--ai-model",
+                "gpt-5-mini",
+                "--ai-output",
+                str(output_file),
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert output_file.exists()
+        assert captured["provider"] == "openai"
+        assert captured["model"] == "gpt-5-mini"
 
 
 class TestInfoCommand:

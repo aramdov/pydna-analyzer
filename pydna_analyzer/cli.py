@@ -123,6 +123,11 @@ def analyze(
         "--ai-provider",
         help="LLM provider: 'openai' or 'anthropic' (auto-detected if not set)",
     ),
+    ai_model: Optional[str] = typer.Option(
+        None,
+        "--ai-model",
+        help="LLM model name to use with the selected provider",
+    ),
     ai_output: Optional[Path] = typer.Option(
         None,
         "--ai-output",
@@ -195,6 +200,7 @@ def analyze(
             result=result,
             style=ai_style,
             provider=ai_provider,
+            model=ai_model,
             output_path=ai_output,
             quiet=quiet,
         )
@@ -208,6 +214,7 @@ def _generate_ai_report(
     result: AnalysisResult,
     style: str,
     provider: Optional[str],
+    model: Optional[str],
     output_path: Optional[Path],
     quiet: bool,
 ):
@@ -230,10 +237,13 @@ def _generate_ai_report(
                 console.print(f"[red]Unknown provider: {provider}. Choose 'openai' or 'anthropic'[/]")
                 raise typer.Exit(1)
         
-        client = get_client(provider=llm_provider)
-        
+        client = get_client(provider=llm_provider, model=model)
+
         if not quiet:
-            console.print(f"[green]✓[/] Using {client.provider.value.title()} for AI report")
+            model_text = f" ({client.model})" if hasattr(client, "model") else ""
+            console.print(
+                f"[green]✓[/] Using {client.provider.value.title()}{model_text} for AI report"
+            )
     
     except ValueError as e:
         console.print(f"[red]AI Error: {e}[/]")
@@ -773,10 +783,12 @@ def ancestry(
     ),
 ):
     """
-    Estimate ancestry composition from DNA data.
+    Experimental ancestry approximation from DNA data.
 
-    Uses maximum likelihood estimation with ancestry-informative markers
-    to estimate population proportions with confidence intervals.
+    Uses a simplified maximum likelihood model with a small set of
+    ancestry-informative markers and a limited reference panel.
+    Results are experimental, coarse, and may be inaccurate. They are
+    not comparable to commercial ancestry services.
 
     Examples:
         pydna-analyzer ancestry AncestryDNA.txt
@@ -800,6 +812,11 @@ def ancestry(
             raise typer.Exit(1)
 
     console.print(f"[green]✓[/] Loaded {dataset.snp_count:,} SNPs from {filepath.name}")
+    console.print(
+        "[yellow]⚠ Experimental feature:[/] This ancestry module uses a simplified "
+        "reference panel and may produce inaccurate results. It is not comparable "
+        "to commercial ancestry services."
+    )
 
     # Run ancestry estimation
     with Progress(
@@ -844,6 +861,12 @@ def ancestry(
             "snps_used": result.snps_used,
             "snps_available": result.snps_available,
             "coverage": round(result.coverage, 4),
+            "experimental": True,
+            "disclaimer": (
+                "This ancestry output is experimental and based on a simplified "
+                "reference panel. It may be inaccurate and is not comparable to "
+                "commercial ancestry services."
+            ),
             "interpretation": result.interpretation,
         }
         with output.open("w") as f:
@@ -856,7 +879,7 @@ def _print_ancestry_results(result: "AncestryResult") -> None:  # noqa: F821
     console.print()
     console.print(
         Panel.fit(
-            "[bold blue]🌍 Ancestry Composition[/]",
+            "[bold blue]🌍 Experimental Ancestry Approximation[/]",
             border_style="blue",
         )
     )
@@ -901,9 +924,11 @@ def _print_ancestry_results(result: "AncestryResult") -> None:  # noqa: F821
 
     console.print()
     console.print(
-        "[dim]⚠ Note: Ancestry estimates are based on a curated set of "
-        "ancestry-informative markers. Commercial services use significantly "
-        "more data for higher resolution. Results are for educational purposes only.[/]"
+        "[dim]⚠ Note: This module uses a small curated set of ancestry-informative "
+        "markers and a simplified reference panel. Results are experimental, coarse, "
+        "and may be inaccurate. Commercial ancestry services use much larger datasets "
+        "and more advanced models. This feature may improve in the future, but it "
+        "should currently be treated as an educational approximation only.[/]"
     )
 
 

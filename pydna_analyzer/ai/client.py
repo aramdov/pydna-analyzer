@@ -54,7 +54,7 @@ class OpenAIClient(LLMClient):
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = "gpt-4o",
+        model: Optional[str] = None,
     ):
         """
         Initialize OpenAI client.
@@ -69,7 +69,7 @@ class OpenAIClient(LLMClient):
                 "OpenAI API key required. Set OPENAI_API_KEY environment variable "
                 "or pass api_key parameter."
             )
-        self.model = model
+        self.model = model or os.environ.get("OPENAI_MODEL", "gpt-4o")
         self._client = None
     
     @property
@@ -180,6 +180,7 @@ class AnthropicClient(LLMClient):
 def get_client(
     provider: Optional[LLMProvider] = None,
     api_key: Optional[str] = None,
+    model: Optional[str] = None,
 ) -> LLMClient:
     """
     Get an LLM client, auto-detecting provider if not specified.
@@ -195,7 +196,7 @@ def get_client(
         ValueError: If no API key is available for any provider
     """
     if provider == LLMProvider.OPENAI:
-        return OpenAIClient(api_key=api_key)
+        return OpenAIClient(api_key=api_key, model=model)
     elif provider == LLMProvider.ANTHROPIC:
         return AnthropicClient(api_key=api_key)
     
@@ -204,7 +205,7 @@ def get_client(
     anthropic_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
     
     if openai_key:
-        return OpenAIClient(api_key=openai_key)
+        return OpenAIClient(api_key=openai_key, model=model)
     elif anthropic_key:
         return AnthropicClient(api_key=anthropic_key)
     else:

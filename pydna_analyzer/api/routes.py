@@ -256,7 +256,7 @@ async def ancestry(
     resolved: ResolvedFile = Depends(resolve_file_input),  # noqa: B008
     bootstrap: int = Query(100, ge=10, le=10000),
 ):
-    """Estimate ancestry composition from a DNA file."""
+    """Return an experimental ancestry approximation from a DNA file."""
     from pydna_analyzer.ancestry import AncestryAnalyzer
     from pydna_analyzer.core.data_loader import load_dna_data
 
@@ -282,6 +282,12 @@ async def ancestry(
             "snps_available": result.snps_available,
             "coverage": round(result.coverage, 4),
             "convergence": result.convergence,
+            "experimental": True,
+            "disclaimer": (
+                "This ancestry output is experimental and based on a simplified "
+                "reference panel. It may be inaccurate and is not comparable to "
+                "commercial ancestry services."
+            ),
             "interpretation": result.interpretation,
         }
     except Exception as exc:

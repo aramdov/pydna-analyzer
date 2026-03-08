@@ -30,7 +30,7 @@ PyDNA Analyzer analyzes your raw DNA data from services like **AncestryDNA**, **
 | 📈 **Polygenic Risk Scores** | Calculate PRS from GWAS weights (PGS Catalog compatible) |
 | 🤖 **AI-Powered Reports** | Natural language reports via OpenAI or Anthropic |
 | 📊 **Interactive Reports** | Beautiful HTML reports with charts and tables |
-| 🌍 **Ancestry Estimation** | Sub-continental ancestry composition with confidence intervals |
+| 🌍 **Experimental Ancestry Approximation** | Coarse ancestry approximation from a small AIM panel; results are experimental and may be inaccurate |
 | 🌐 **REST API** | Local FastAPI server for AI agents, scripts, and integrations |
 | ✅ **Comprehensive Tests** | 222 tests covering all modules |
 
@@ -79,7 +79,7 @@ pydna-analyzer analyze your_dna_file.txt --html -o report.html
 # Export to JSON
 pydna-analyzer analyze your_dna_file.txt --json -o results.json
 
-# Estimate ancestry composition
+# Experimental ancestry approximation
 pydna-analyzer ancestry your_dna_file.txt
 
 # Calculate Polygenic Risk Scores
@@ -94,6 +94,16 @@ pydna-analyzer info your_dna_file.txt
 # List all clinical variants in database
 pydna-analyzer variants
 ```
+
+### Experimental Ancestry Module
+
+The ancestry module is currently **experimental**.
+
+- It uses a small curated set of ancestry-informative markers and a simplified reference panel.
+- It provides a coarse educational approximation, not a genealogical conclusion.
+- It is **not** comparable to commercial ancestry services such as AncestryDNA or 23andMe.
+- It may be inaccurate, especially for populations that are underrepresented in the reference data.
+- We may improve it in the future with better reference data and evaluation, but for now it should be treated cautiously.
 
 ### REST API
 
@@ -162,6 +172,9 @@ pydna-analyzer analyze your_dna.txt --ai --ai-style consumer
 # Generate technical report for researchers
 pydna-analyzer analyze your_dna.txt --ai --ai-style technical
 
+# Choose a specific OpenAI model
+pydna-analyzer analyze your_dna.txt --ai --ai-provider openai --ai-model gpt-5-mini
+
 # Save report to file
 pydna-analyzer analyze your_dna.txt --ai --ai-output report.md
 ```
@@ -189,7 +202,7 @@ pydna_analyzer/
 ├── pharmacogenomics/  # Drug metabolism analysis
 ├── polygenic/         # Polygenic risk score calculator ✅
 ├── ai/                # AI-powered report generation ✅
-├── ancestry/          # Ancestry composition estimation ✅
+├── ancestry/          # Experimental ancestry approximation ✅
 ├── reports/           # HTML and JSON report generation
 └── cli.py             # Command-line interface
 

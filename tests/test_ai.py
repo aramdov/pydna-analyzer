@@ -116,6 +116,26 @@ class TestLLMClients:
         with patch.dict("os.environ", {"OPENAI_API_KEY": "env-key-456"}):
             client = OpenAIClient()
             assert client.api_key == "env-key-456"
+            assert client.model == "gpt-4o"
+
+    def test_openai_client_accepts_model_param(self):
+        """Test OpenAI client accepts an explicit model."""
+        from pydna_analyzer.ai.client import OpenAIClient
+
+        client = OpenAIClient(api_key="test-key-123", model="gpt-5-mini")
+        assert client.model == "gpt-5-mini"
+
+    def test_openai_client_reads_model_from_env(self):
+        """Test OpenAI client reads model override from environment."""
+        from pydna_analyzer.ai.client import OpenAIClient
+
+        with patch.dict(
+            "os.environ",
+            {"OPENAI_API_KEY": "env-key-456", "OPENAI_MODEL": "gpt-5-mini"},
+            clear=True,
+        ):
+            client = OpenAIClient()
+            assert client.model == "gpt-5-mini"
     
     def test_anthropic_client_from_env(self):
         """Test Anthropic client reads from environment."""
@@ -163,6 +183,15 @@ class TestGetClient:
         with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "anthropic-key"}):
             client = get_client(provider=LLMProvider.ANTHROPIC)
             assert client.provider == LLMProvider.ANTHROPIC
+
+    def test_get_client_passes_model_to_openai(self):
+        """Test get_client forwards model selection to the OpenAI client."""
+        from pydna_analyzer.ai.client import get_client, LLMProvider
+
+        with patch.dict("os.environ", {"OPENAI_API_KEY": "openai-key"}, clear=True):
+            client = get_client(provider=LLMProvider.OPENAI, model="gpt-5-mini")
+            assert client.provider == LLMProvider.OPENAI
+            assert client.model == "gpt-5-mini"
 
 
 class TestPrompts:
